@@ -209,7 +209,8 @@ class SimulationEngine:
             
         elif event_type == EVENT_SAVE:
             # Player is GK here
-            player.update_rating(0.5)
+            # Reduced from 0.5 to 0.3 to prevent GKs from dominating MOTM in 0-0/1-0 games
+            player.update_rating(0.3)
             # Defending team gets momentum boost
             def_team = match.home_team if att_team == match.away_team else match.away_team
             def_team.update_momentum(10)
@@ -223,9 +224,9 @@ class SimulationEngine:
             
         elif event_type == EVENT_SHOT:
             player.update_confidence(1)
-            player.update_rating(0.2)
+            player.update_rating(0.3) # Increased from 0.2
             
         elif event_type == EVENT_ATTACK:
             # Slight momentum build
             att_team.update_momentum(3)
-            player.update_rating(0.1)
+            player.update_rating(0.2) # Increased from 0.1
