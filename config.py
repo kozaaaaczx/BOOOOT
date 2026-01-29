@@ -1,0 +1,25 @@
+MATCH_LENGTH_MINUTES = 90
+LIVE_MATCH_UPDATE_INTERVAL = 1.5  # seconds
+FAST_MATCH_UPDATE_INTERVAL = 0.0  # instant
+STARTING_RATING = 6.0
+STARTING_MOMENTUM = 50
+MAX_MOMENTUM_CHANGE = 5
+MAX_CHAOS_LEVEL = 1.0
+
+# Styles
+STYLE_BALANCED = "Balanced"
+STYLE_AGGRESSIVE = "Aggressive"
+STYLE_DEFENSIVE = "Defensive"
+STYLE_COUNTER = "Counter-Attack"
+
+# Events
+EVENT_NOTHING = "nothing"
+EVENT_POSSESSION = "possession"
+EVENT_ATTACK = "attack"
+EVENT_SHOT = "shot"
+EVENT_GOAL = "goal"
+EVENT_SAVE = "save"
+EVENT_FOUL = "foul"
+EVENT_YELLOW_CARD = "yellow_card"
+EVENT_RED_CARD = "red_card"
+EVENT_INJURY = "injury"

@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+teams.json
+.vscode/
+.idea/
+.gemini/
+.agent/
+node_modules/
