@@ -151,9 +151,9 @@ class SimulationEngine:
 
         # Action Roll
         # Attack roll vs Defense roll
-        # Increased variance significantly to allow for shocks
-        att_score = attacker.get_effective_ovr() + random.randint(-15, 20)
-        def_score = gk.get_effective_ovr() + random.randint(-10, 15) + 5 # Lower GK bonus
+        # Reduced variance to make OVR matter more and reduce random goal fests
+        att_score = attacker.get_effective_ovr() + random.randint(-10, 15) # Was -15, 20
+        def_score = gk.get_effective_ovr() + random.randint(-5, 10) + 5 # Reduced variance here too
         
         # Momentum impact - Decreased impact to prevent snowballing
         att_score += (att_team.momentum - 50) / 6
@@ -170,22 +170,22 @@ class SimulationEngine:
         elif score_diff <= -2:
             att_score += 5 # Desperation push
         
-        # Chaos factor - Increased
+        # Chaos factor - Reduced randomness to prevent wild swings
         if random.random() < match.chaos_level:
-            att_score += random.randint(-25, 25)
+            att_score += random.randint(-15, 15) # Was -25, 25
         
         context = {'team': att_team, 'player': attacker, 'opponent': def_team}
 
         # Events
-        # AGGRESSIVE TUNING: Goal threshold lowered to +8 (was +15)
-        if att_score > def_score + 8:
+        # AGGRESSIVE TUNING 2.0: Goal threshold raised to +14 (Was +8) to stop 7-6 scores
+        if att_score > def_score + 14:
             # GOAL
             return EVENT_GOAL, context
-        elif att_score > def_score + 2:
+        elif att_score > def_score + 4:
             # SAVE (GK heroics)
             context['player'] = gk 
             return EVENT_SAVE, context
-        elif att_score > def_score - 4:
+        elif att_score > def_score - 2:
              # SHOT 
              return EVENT_SHOT, context
         else:
