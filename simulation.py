@@ -117,6 +117,26 @@ class SimulationEngine:
              if others:
                  attacker = random.choice(others)
 
+        # Apply Weighted Selection
+        # ST/CF/LF/RF -> Weight 10
+        # CAM/LM/RM/LW/RW -> Weight 7
+        # CM/CDM -> Weight 4
+        # CB/LB/RB/WB -> Weight 1
+        weights = []
+        for p in outfield_players:
+            pos = p.position.strip().upper()
+            if pos in ["ST", "CF", "LF", "RF", "NAPASTNIK"]:
+                w = 10
+            elif pos in ["CAM", "LM", "RM", "LW", "RW", "POMOCNIK"]:
+                w = 7
+            elif pos in ["CM", "CDM", "ŚPD", "ŚP"]:
+                w = 4
+            else:
+                w = 1 # Defenders
+            weights.append(w)
+            
+        attacker = random.choices(outfield_players, weights=weights, k=1)[0]
+
         # Find goalkeeper
         gk = next((p for p in def_team.players if p.position.upper() in ["GK", "BR"]), None)
         if not gk:
