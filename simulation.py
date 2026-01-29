@@ -98,16 +98,24 @@ class SimulationEngine:
     def _resolve_action(self, match, att_team, def_team):
         # Pick attacker (STRICTLY Exclude GKs)
         # We check common names/tags for GKs
-        outfield_players = [p for p in att_team.players if p.position.upper() not in ["GK", "BR", "BRAMKARZ"]]
+        # Function to check if player is GK
+        def is_gk(p):
+            return p.position.strip().upper() in ["GK", "BR", "BRAMKARZ", "GOALKEEPER"]
+            
+        outfield_players = [p for p in att_team.players if not is_gk(p)]
         
         # Double check: if still finding a GK (e.g. position naming mismatch), skip them
         if not outfield_players:
+            # Fallback: just pick anyone but try to avoid the one with 'GK' in stats if possible
             outfield_players = att_team.players
             
         attacker = random.choice(outfield_players)
-        # If by any chance we picked Pavlenka or any GK, try to pick someone else
-        if attacker.position.upper() in ["GK", "BR"] and len(att_team.players) > 1:
-             attacker = random.choice([p for p in att_team.players if p != attacker])
+        
+        # Paranoia check: If we somehow picked a GK, pick again from others
+        if is_gk(attacker) and len(att_team.players) > 1:
+             others = [p for p in att_team.players if p != attacker]
+             if others:
+                 attacker = random.choice(others)
 
         # Find goalkeeper
         gk = next((p for p in def_team.players if p.position.upper() in ["GK", "BR"]), None)
