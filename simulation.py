@@ -44,12 +44,22 @@ class SimulationEngine:
 
         # 3. DETERMINE POSSESSION (Phase Logic)
         # If a team has a streak, they likely keep the ball
-        if match.possession_team and random.random() < 0.7:
+        # Reduced stickiness from 0.7 to 0.6 to allow more turnovers
+        if match.possession_team and random.random() < 0.6:
              attacking_team = match.possession_team
              match.possession_streak += 1
         else:
              # Regular OVR/Momentum based toss
-             home_adv = (match.home_team.get_avg_ovr() - match.away_team.get_avg_ovr()) + (match.home_team.momentum - match.away_team.momentum) / 4
+             # Reduced momentum impact on possession from /4 to /8
+             home_adv = (match.home_team.get_avg_ovr() - match.away_team.get_avg_ovr()) + (match.home_team.momentum - match.away_team.momentum) / 8
+             
+             # CATCH-UP MECHANIC: If home is winning by 2+, reduce their possession chance
+             score_diff = match.home_team.score - match.away_team.score
+             if score_diff >= 2:
+                 home_adv -= 15
+             elif score_diff <= -2:
+                 home_adv += 15
+                 
              home_prob = 0.5 + (home_adv / 100)
              attacking_team = match.home_team if random.random() < home_prob else match.away_team
              match.possession_team = attacking_team
@@ -110,8 +120,17 @@ class SimulationEngine:
         att_score = attacker.get_effective_ovr() + random.randint(-15, 20)
         def_score = gk.get_effective_ovr() + random.randint(-10, 15) + 5 # Lower GK bonus
         
-        # Momentum impact - Increased impact
-        att_score += (att_team.momentum - 50) / 4
+        # Momentum impact - Decreased impact to prevent snowballing
+        att_score += (att_team.momentum - 50) / 6
+        
+        # CATCH-UP LOGIC vs SNOWBALL PREVENTION
+        # If attacking team is winning by 2+, they relax slightly (lower score)
+        # If attacking team is losing by 2+, they push harder (higher score)
+        score_diff = att_team.score - def_team.score
+        if score_diff >= 2:
+            att_score -= 5 # Complacency
+        elif score_diff <= -2:
+            att_score += 5 # Desperation push
         
         # Chaos factor - Increased
         if random.random() < match.chaos_level:
