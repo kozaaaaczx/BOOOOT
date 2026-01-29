@@ -117,42 +117,55 @@ async def play_match(interaction: discord.Interaction, home_team: str, away_team
     # Create match instance
     match = Match(home, away, mode=mode.lower())
     
-    await interaction.response.send_message(f"⚽ **MECZ ROZPOCZĘTY!** ⚽\n{home.name} vs {away.name}\nTryb: {mode}")
+    # Check for empty teams
+    if not home.players or not away.players:
+        await interaction.response.send_message("Jedna z drużyn nie ma zawodników! Nie można rozpocząć meczu.", ephemeral=True)
+        return
+
+    # Defer response to prevent "Application not responding" if something takes long
+    await interaction.response.defer()
+    
+    await interaction.followup.send(f"⚽ **MECZ ROZPOCZĘTY!** ⚽\n{home.name} vs {away.name}\nTryb: {mode}")
     
     # Simulation Loop
     channel = interaction.channel
-    message_buffer = []
+    if not channel:
+        channel = interaction.user # Fallback
 
-    while not match.is_finished():
-        sim_engine.simulate_minute(match)
-        
-        # Wait for "live" feeling
-        if mode.lower() == 'live':
-             # Find events for this minute
-             events_this_minute = [log for log in match.logs if log.startswith(f"{match.current_minute}'")]
-             for event in events_this_minute:
-                 try:
-                     await channel.send(event)
-                 except Exception as e:
-                     print(f"Error sending message: {e}")
+    try:
+        while not match.is_finished():
+            sim_engine.simulate_minute(match)
+            
+            # Wait for "live" feeling
+            if mode.lower() == 'live':
+                 # Find events for this minute
+                 events_this_minute = [log for log in match.logs if log.startswith(f"{match.current_minute}'")]
+                 for event in events_this_minute:
+                     try:
+                         await channel.send(event)
+                     except Exception as e:
+                         print(f"Error sending message: {e}")
 
-             await asyncio.sleep(LIVE_MATCH_UPDATE_INTERVAL)
+                 await asyncio.sleep(LIVE_MATCH_UPDATE_INTERVAL)
+            
         
-    
-    # Match Ended
-    summary = f"**KONIEC MECZU**\n{home.name} {match.home_team.score} - {match.away_team.score} {away.name}\n"
-    
-    # Stats Summary
-    stats_msg = "📊 **Statystyki Meczu**\n"
-    stats_msg += f"{home.name}: {home.score} Gole\n"
-    stats_msg += f"{away.name}: {away.score} Gole\n"
-    
-    await channel.send(summary + "\n" + stats_msg)
-    
-    # Man of the Match
-    motm_player = calculate_motm(home, away)
-    if motm_player:
-        await channel.send(f"🌟 **ZAWODNIK MECZU (MOTM)** 🌟\n**{motm_player.name}** ({motm_player.position})\nOcena: **{motm_player.rating:.1f}**" + (f"\nBramki: {motm_player.goals}" if motm_player.goals > 0 else ""))
+        # Match Ended
+        summary = f"**KONIEC MECZU**\n{home.name} {match.home_team.score} - {match.away_team.score} {away.name}\n"
+        
+        # Stats Summary
+        stats_msg = "📊 **Statystyki Meczu**\n"
+        stats_msg += f"{home.name}: {home.score} Gole\n"
+        stats_msg += f"{away.name}: {away.score} Gole\n"
+        
+        await channel.send(summary + "\n" + stats_msg)
+        
+        # Man of the Match
+        motm_player = calculate_motm(home, away)
+        if motm_player:
+            await channel.send(f"🌟 **ZAWODNIK MECZU (MOTM)** 🌟\n**{motm_player.name}** ({motm_player.position})\nOcena: **{motm_player.rating:.1f}**" + (f"\nBramki: {motm_player.goals}" if motm_player.goals > 0 else ""))
+    except Exception as e:
+        print(f"CRASH IN MATCH LOOP: {e}")
+        await channel.send(f"🆘 **BŁĄD KRYTYCZNY:** Mecz został przerwany z powodu błędu silnika: `{e}`")
 
 def calculate_motm(home_team, away_team):
     all_players = home_team.players + away_team.players
