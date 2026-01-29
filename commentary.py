@@ -4,88 +4,127 @@ from config import *
 class CommentaryEngine:
     def __init__(self):
         self.last_templates = []
-        self.history_size = 10 # Track last 10 templates to avoid repetition
-        
+        self.history_size = 12 # Increased slightly to ensure even more variety
+
         self.templates = {
             EVENT_NOTHING: {
                 "early_neutral": [
                     "Początek spotkania, obie drużyny badają się nawzajem.",
                     "Spokojne tempo w pierwszych minutach, nikt nie chce popełnić błędu.",
-                    "Gra toczy się w środku pola, czekamy na pierwszą groźną akcję.",
-                    "Obrońcy wymieniają podania, próbując wyciągnąć rywala z defensywy.",
+                    "Gra toczy się głównie w środku pola, czekamy na otwarcie.",
+                    "Obrońcy wymieniają podania, budując akcję od tyłu.",
+                    "Zespoły skupione na defensywie, środek boiska jest bardzo zagęszczony.",
+                    "Bramkarz spokojnie wznawia grę od bramki.",
+                    "Wzajemne szukanie słabych punktów, piłka krąży leniwie.",
+                    "Trenerzy obserwują uważnie, korygując ustawienie z linii bocznej.",
                 ],
                 "mid_neutral": [
-                    "Taktyczne szachy na murawie, trenerzy szukają luki w ustawieniu.",
-                    "Piłka krąży od nogi do nogi, ale brakuje wykończenia.",
-                    "Trochę niedokładności w środku pola, gra się rwie.",
-                    "Walka o górną piłkę w kole środkowym, twarde starcie.",
+                    "Taktyczne szachy na murawie, walka o każdy metr kwadratowy.",
+                    "Piłka krąży od nogi do nogi, ale podania są mało konkretne.",
+                    "Trochę niedokładności w środku pola, gra nieco straciła na płynności.",
+                    "Zacięta walka o piłkę w kole środkowym, dużo fizycznych starć.",
+                    "Mecz wszedł w fazę stabilizacji, obie strony czekają na błąd rywala.",
+                    "Próba rozciągnięcia gry do boku, ale obrona rywala jest czujna.",
+                    "Krótki fragment szarpanej gry, dużo niecelnych zagrań.",
+                    "Drużyny wymieniają się posiadaniem, brakuje jednak ostatniego podania.",
                 ],
                 "late_neutral": [
-                    "Zmęczenie daje o sobie znać, tempo nieco spadło.",
-                    "Zegar tyka, a na boisku wciąż patowa sytuacja w tej akcji.",
-                    "Próba długiego podania 'na aferę', ale obrońcy są czujni.",
+                    "Zmęczenie daje o sobie znać, zawodnicy poruszają się nieco wolniej.",
+                    "Zegar tyka, a sytuacja na boisku wciąż patowa w tym fragmencie.",
+                    "Próba długiego podania 'na aferę', ale defensywa pewnie to czyści.",
                     "Końcówka meczu, nikt nie chce zaryzykować decydującego błędu.",
+                    "Gra staje się coraz bardziej nerwowa, dużo chaosu w środku pola.",
+                    "Szatkowanie gry faulami, tempo spotkania drastycznie spadło.",
+                    "Zawodnicy czekają na sygnał do końcowego ataku, póki co spokój.",
+                    "Niewiele dzieje się pod bramkami, piłka utknęła w gąszczu nóg w środku.",
                 ],
-                "pressure": [
-                    "{team} zamyka rywala na własnej połowie!",
-                    "Kolejna fala ataku {team}, obrona rozpaczliwie się broni!",
-                    "To jest oblężenie! {team} nie wypuszcza rywala z pola karnego.",
-                    "Pachnie bramką! {team} naciska coraz mocniej!",
-                    "Kibice {team} wstali z miejsc, czują, że gol wisi w powietrzu!",
+                "low_pressure": [
+                    "{team} próbuje wyżej podejść pod rywala, zaczyna się lekki nacisk.",
+                    "Wyraźna chęć przejęcia inicjatywy przez zespół {team}.",
+                    "{team} ustawia się wyżej, starając się zepchnąć przeciwnika do defensywy.",
+                    "Piłka coraz częściej ląduje na połowie rywala drużyny {team}.",
                 ],
-                "chaos": [
+                "high_pressure": [
+                    "{team} zamyka rywala na własnej połowie, to jest oblężenie!",
+                    "Kolejna fala ataku {team}, obrona rozpaczliwie odpiera ciosy!",
+                    "To jest prawdziwy test dla defensywy, {team} nie wypuszcza ich z pola karnego.",
+                    "Pachnie bramką! {team} naciska coraz mocniej, brakuje centymetrów.",
+                    "Kibice {team} wstali z miejsc, czując, że przełamanie jest blisko!",
+                    "Zmasowany atak {team}, piłka niemal nie opuszcza 'szesnastki' rywala.",
+                ],
+                "low_chaos": [
+                    "Trochę nerwowości w szeregach obu drużyn, piłka odbija się przypadkowo.",
+                    "Mecz staje się nieskładny, gra staje się rwana i nieprzewidywalna.",
+                    "Wzajemne błędy w wyprowadzaniu piłki, nikt nie potrafi jej dłużej utrzymać.",
+                    "Piłka krąży w powietrzu, dużo walki o górne futbolówki.",
+                ],
+                "high_chaos": [
                     "Kompletny chaos w polu karnym! Piłka odbija się jak w bilardzie!",
-                    "Nikt nie panuje nad sytuacją, piłka lata nad głowami!",
-                    "To nie jest futbol, to walka wręcz o każdą piłkę!",
-                    "Sędzia traci kontrolę nad spotkaniem, robi się bardzo nerwowo!",
+                    "Nikt nie panuje nad sytuacją, to jest prawdziwa bitwa na murawie!",
+                    "To już nie jest czysty futbol, to walka wręcz o każdą bezpańską piłkę!",
+                    "Sędzia traci kontrolę nad spotkaniem, robi się bardzo gęsta atmosfera!",
+                    "Piłka-bilard! Niewiarygodne zamieszanie, nikt nie wie gdzie jest piłka!",
+                    "Seria pomyłek z obu stron, boisko zamieniło się w poligon doświadczalny.",
                 ]
             },
             EVENT_ATTACK: [
-                "{player} urywa się obrońcom, to może być groźna akcja!",
-                "Świetny rajd {player} skrzydłem, ależ ma przyspieszenie!",
-                "{team} wychodzi z zabójczą kontrą 3 na 2!",
-                "Genialne prostopadłe podanie do {player}, ma autostradę do bramki!",
-                "{player} mija rywala balansem ciała i wbiega w pole karne!",
-                "Szybka klepka {team}, rozmontowują linię defensywy!",
+                "{player} urywa się obrońcom, to może być ta jedna jedyna akcja!",
+                "Świetny rajd {player} skrzydłem, ależ on ma gaz w nogach!",
+                "{team} wyprowadza zabójczą kontrę, idą trzy na dwa!",
+                "Genialne prostopadłe podanie do {player}, ma przed sobą tylko słońce i bramkę!",
+                "{player} mija rywala balansem ciała i wpada w pole karne z impetem!",
+                "Szybka wymiana podań zawodników {team}, rozbijają mur defensywny!",
+                "{player} zabiera się z piłką, obrona zostaje daleko w tyle!",
+                "Ależ podanie zewnętrzną częścią stopy! {player} melduje się w szesnastce!",
             ],
             EVENT_SHOT: [
-                "{player} składa się do strzału... UDERZENIE!",
-                "Potężna bomba z dystansu w wykonaniu {player}!",
-                "{player} próbuje technicznej podcinki nad bramkarzem!",
-                "Krótki zwód i natychmiastowy strzał {player} w krótki róg!",
-                "{player} uderza z pierwszej piłki, to była trudna pozycja!",
+                "{player} składa się do strzału... POTĘŻNE UDERZENIE!",
+                "Bomba z dystansu w wykonaniu {player}, sypią się iskry!",
+                "{player} próbuje technicznej podcinki, szał na trybunach!",
+                "Błyskawiczny zwód i strzał {player} w krótki róg bramki!",
+                "{player} uderza z pierwszej piłki, to była sytuacja sytuacyjna!",
+                "{player} próbuje szczęścia zza pola karnego, piłka leci z dużą siłą!",
+                "Główka {player} po dośrodkowaniu! Piłka zmierza pod poprzeczkę!",
             ],
             EVENT_SAVE: [
-                "Niewiarygodne! {player} wyjmuje piłkę z samego okienka!",
-                "Robinsonada {player}! Co za interwencja, ratuje wynik!",
-                "{player} wygrywa pojedynek sam na sam! Klasa światowa!",
-                "To musiał być gol! Ale {player} mówi stanowcze NIE!",
-                "{player} instynktownie broni nogami! Co za refleks!",
+                "Niewiarygodne! {player} wyjmuje piłkę niemal z samego okienka!",
+                "Parada kolejki! {player} rzuca się jak pantera i broni!",
+                "{player} wygrywa ten pojedynek jeden na jeden! Absolutna klasa!",
+                "To musiał być gol, ale {player} mówi dzisiaj stanowcze NIE!",
+                "{player} instynktownie broni na linii! Co za refleks, niesamowite!",
+                "Bramkarz {player} wyrasta na bohatera, co on dzisiaj wyczynia!",
+                "Świetne wyjście z bramki {player}, skraca kąt i zatrzymuje atak!",
             ],
             EVENT_GOAL: [
-                "⚽ GOOOOL! {player} wpisuje się na listę strzelców!",
-                "⚽ ALEŻ TRAFIENIE! {player} zdejmuje pajęczynę z okienka!",
+                "⚽ GOOOOL! {player} otwiera wynik, stadion oszalał!",
+                "⚽ ALEŻ BRAMKA! {player} zdejmuje pajęczynę z samego spojenia!",
                 "⚽ Stadiony świata! {player} daje prowadzenie drużynie {team}!",
-                "⚽ Bramkarz bez szans! Precyzyjny strzał {player} ląduje w siatce!",
-                "⚽ To jest nokaut! {player} bezlitośnie wykorzystuje błąd obrony!",
+                "⚽ Bramkarz bez szans, precyzyjny strzał {player} ociera się o słupek i wpada!",
+                "⚽ To jest nokaut! {player} wykorzystuje błąd rywali i pewnie uderza!",
+                "⚽ Fenomenalne uderzenie! {player} celebruje gola z kolegami z {team}!",
+                "⚽ Siatka pęka! {player} nie dał cienia szansy bramkarzowi!",
             ],
             EVENT_FOUL: [
-                "Brzydki faul, {player} zdecydowanie przesadził z agresją.",
-                "Gwizdek sędziego. {player} fauluje taktycznie, przerywając kontrę.",
-                "Nieprzepisowe zagranie {player}, sędzia musiał to odgwizdać.",
+                "Brzydki faul, {player} zdecydowanie przesadził z agresją w tej walce.",
+                "Gwizdek arbitra. {player} przerywa akcję rywala w sposób nieprzepisowy.",
+                "Ostre wejście {player}, sędzia musi tutaj interweniować.",
+                "Przewinienie {player} w środku pola, rzut wolny dla przeciwnika.",
             ],
             EVENT_YELLOW_CARD: [
-                "🟨 Żółta kartka dla {player}. Zasłużona kara za ten faul.",
-                "🟨 Sędzia nie ma wątpliwości, wyciąga żółty kartonik. {player} musi uważać.",
+                "🟨 Żółta kartka! {player} ukarany za to uporczywe faulowanie.",
+                "🟨 Sędzia wyciąga kartonik, {player} musi uważać, to jego pierwsze ostrzeżenie.",
+                "🟨 Nie ma zmiłuj, żółta kartka dla zawodnika {player}.",
             ],
             EVENT_RED_CARD: [
-                "🟥 CZERWONA KARTKA! {player} wylatuje z boiska! Dramat!",
-                "🟥 Brutalne wejście {player} i sędzia bez wahania wyrzuca go z gry!",
+                "🟥 CZERWONA KARTKA! {player} wylatuje z boiska, co za osłabienie!",
+                "🟥 Brutalny faul! Sędzia bez wahania pokazuje {player} drogę do szatni!",
+                "🟥 Skandaliczne zachowanie {player}, czerwony kartonik wędruje w górę!",
             ],
             "meta": [
-                "Mimo optycznej przewagi, {dominator} wciąż nie potrafi udokumentować tego golem.",
-                "Wynik na tablicy nie do końca oddaje przebieg tego spotkania.",
-                "To niesamowite, że wciąż mamy taki wynik przy tylu sytuacjach.",
+                "Mimo optycznej przewagi, {dominator} wciąż nie potrafi tego udokumentować.",
+                "Obraz gry sugeruje dominację jednej strony, ale wynik wciąż pozostaje otwarty.",
+                "To niesamowite, że mamy taki wynik przy tak dużej liczbie sytuacji.",
+                "Taktyka {dominator} wydaje się przynosić owoce, kontrolują przebieg meczu.",
             ]
         }
 
@@ -93,18 +132,25 @@ class CommentaryEngine:
         if match.mode == 'fast' and event_type not in [EVENT_GOAL, EVENT_RED_CARD]:
              return None
 
-        # Determine sub-category for EVENT_NOTHING / Events
         options = []
         
         if event_type == EVENT_NOTHING:
-            # Check phases and context
-            if match.chaos_level > 0.6:
-                options = self.templates[EVENT_NOTHING]["chaos"]
+            # 1. GRADUAL CHAOS LOGIC
+            if match.chaos_level > 0.7:
+                options = self.templates[EVENT_NOTHING]["high_chaos"]
+            elif match.chaos_level > 0.4:
+                options = self.templates[EVENT_NOTHING]["low_chaos"]
+            
+            # 2. GRADUAL PRESSURE LOGIC
+            elif (match.possession_streak > 3 or 
+                  abs(match.home_team.momentum - match.away_team.momentum) > 30):
+                options = self.templates[EVENT_NOTHING]["high_pressure"]
             elif (match.possession_streak > 1 or 
-                  abs(match.home_team.momentum - match.away_team.momentum) > 20):
-                options = self.templates[EVENT_NOTHING]["pressure"]
+                  abs(match.home_team.momentum - match.away_team.momentum) > 15):
+                options = self.templates[EVENT_NOTHING]["low_pressure"]
+            
+            # 3. PHASE-BASED NEUTRAL LOGIC
             else:
-                # Time-based neutral
                 if match.current_minute <= 30:
                     options = self.templates[EVENT_NOTHING]["early_neutral"]
                 elif match.current_minute <= 70:
@@ -114,41 +160,49 @@ class CommentaryEngine:
         
         elif event_type == "meta":
              options = self.templates["meta"]
-             
         else:
-            # Standard events
+            # Standard events (ATTACK, SHOT, SAVE, GOAL, etc.)
             options = self.templates.get(event_type, [])
 
         if not options:
             return "..."
 
-        # Filter used templates to avoid repetition
+        # VARIETY CHECK: Avoid repetition using history tracking
         valid_options = [t for t in options if t not in self.last_templates]
+        
         if not valid_options:
-            # If we ran out of unique ones, relax the constraint slightly (e.g. check last 5 instead of 10)
-            valid_options = [t for t in options if t not in self.last_templates[-5:]]
+            # If all sentences in this small category were used, forget the oldest ones for this call
+            valid_options = [t for t in options if t not in self.last_templates[-3:]]
             if not valid_options:
-                 valid_options = options # Fallback reset
+                 valid_options = options # Total fallback
 
         template = random.choice(valid_options)
         
-        # Remember usage
+        # Track history
         self.last_templates.append(template)
         if len(self.last_templates) > self.history_size:
             self.last_templates.pop(0)
 
-        # Context Formatting
-        team_name = context.get('team').name if context and context.get('team') else "Drużyna"
-        if not team_name and match.possession_team:
-             team_name = match.possession_team.name # Fallback for neutral events
-             
-        player_name = context.get('player').name if context and context.get('player') else "Zawodnik"
+        # Context Preparation
+        team_name = "Drużyna"
+        if context and context.get('team'):
+            team_name = context.get('team').name
+        elif match.possession_team:
+            team_name = match.possession_team.name
+            
+        player_name = "Zawodnik"
+        if context and context.get('player'):
+            player_name = context.get('player').name
         
-        # Meta commentary helper vars
+        # Meta commentary helper
         dominator = match.home_team.name if match.home_team.momentum > match.away_team.momentum else match.away_team.name
         
-        return template.format(
-            team=team_name, 
-            player=player_name, 
-            dominator=dominator
-        )
+        try:
+            return template.format(
+                team=team_name, 
+                player=player_name, 
+                dominator=dominator
+            )
+        except Exception as e:
+            # Safe fallback if formatting fails
+            return template
