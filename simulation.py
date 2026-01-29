@@ -17,7 +17,7 @@ class SimulationEngine:
         
         # 2. DECISION LAYER (Dynamic Match Pacing)
         # Base neutral chance decreases slightly over time to increase action in late game
-        base_neutral = 0.90
+        base_neutral = 0.88
         if minute > 30: base_neutral -= 0.05
         if minute > 70: base_neutral -= 0.05
         
@@ -118,18 +118,21 @@ class SimulationEngine:
         def is_gk(p):
             return p.position.strip().upper() in ["GK", "BR", "BRAMKARZ", "GOALKEEPER"]
             
-        outfield_players = [p for p in att_team.players if not is_gk(p)]
+        outfield_players = [p for p in att_team.players if not is_gk(p) and not p.is_sent_off]
         
         # Double check: if still finding a GK (e.g. position naming mismatch), skip them
         if not outfield_players:
-            # Fallback: just pick anyone but try to avoid the one with 'GK' in stats if possible
-            outfield_players = att_team.players
+            # Fallback: just pick anyone who isn't sent off
+            outfield_players = [p for p in att_team.players if not p.is_sent_off]
             
+        if not outfield_players:
+            return EVENT_NOTHING, context # Should not happen if teams are balanced
+
         attacker = random.choice(outfield_players)
         
         # Paranoia check: If we somehow picked a GK, pick again from others
-        if is_gk(attacker) and len(att_team.players) > 1:
-             others = [p for p in att_team.players if p != attacker]
+        if is_gk(attacker) and len(outfield_players) > 1:
+             others = [p for p in outfield_players if p != attacker]
              if others:
                  attacker = random.choice(others)
 
@@ -168,8 +171,8 @@ class SimulationEngine:
         # Action Roll
         # Attack roll vs Defense roll
         # Normalized variance
-        att_score = attacker.get_effective_ovr() + random.randint(-12, 12)
-        def_score = gk.get_effective_ovr() + random.randint(-8, 8) + 5
+        att_score = attacker.get_effective_ovr() + random.randint(-15, 15)
+        def_score = gk.get_effective_ovr() + random.randint(-5, 5) + 2
         
         # Momentum impact - Quadratic-ish factor
         mom_diff = (att_team.momentum - def_team.momentum)
@@ -197,7 +200,7 @@ class SimulationEngine:
         # AGGRESSIVE SUPPRESSION: Goal threshold is dynamic
         # Base is +15. For every goal the team already has, it increases by +5
         # If team has 2 goals, threshold is 15 + 10 = 25.
-        target_threshold = 15 + (att_team.score * 5)
+        target_threshold = 5 + (att_team.score * 3)
         
         if att_score > def_score + target_threshold:
             # GOAL
@@ -245,8 +248,8 @@ class SimulationEngine:
             player.update_rating(-2.0)
             player.cards += 1
             match.chaos_level += 0.3
-            # In a real engine, we'd remove the player from the list, but for simplicity we keep them but tank their stats or simple ignore
-            player.ovr = 0 # Effective removal
+            player.is_sent_off = True
+            player.ovr = 0 # Keep for legacy check but now we have the flag
             
         elif event_type == EVENT_SHOT:
             player.update_confidence(1)

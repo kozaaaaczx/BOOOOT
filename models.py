@@ -4,6 +4,7 @@ from config import *
 class Player:
     def __init__(self, name, ovr, position="MD"):
         self.name = name
+        self.base_ovr = int(ovr)
         self.ovr = int(ovr)
         self.position = position
         
@@ -14,6 +15,7 @@ class Player:
         self.goals = 0
         self.assists = 0
         self.cards = 0
+        self.is_sent_off = False
         
     def to_dict(self):
         return {
@@ -77,6 +79,23 @@ class Match:
         self.away_team = away_team
         self.mode = mode
         
+        # Reset team match stats
+        self.home_team.score = 0
+        self.away_team.score = 0
+        self.home_team.momentum = STARTING_MOMENTUM
+        self.away_team.momentum = STARTING_MOMENTUM
+        
+        # Reset player match stats
+        for p in self.home_team.players + self.away_team.players:
+            p.condition = 100.0
+            p.rating = STARTING_RATING
+            p.confidence = 0
+            p.goals = 0
+            p.assists = 0
+            p.cards = 0
+            p.is_sent_off = False
+            p.ovr = p.base_ovr
+            
         self.current_minute = 0
         self.stats = {
             'home_possession': 50,
