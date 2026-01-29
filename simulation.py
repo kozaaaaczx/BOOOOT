@@ -15,19 +15,19 @@ class SimulationEngine:
         self._update_fatigue(match)
         self._update_chaos(match)
         
-        # 2. DECISION LAYER (Balance Rule)
-        neutral_chance = 0.85
-        # Reduce 'nothing happens' significantly if momentum is high or streak is active
+        # 2. DECISION LAYER (Balance Rule - EXTREME SUPPRESSION)
+        neutral_chance = 0.92 # Increased from 0.85 - more 'boring' minutes
+        # Reduce 'nothing happens' if momentum is high or streak is active, but less aggressively
         if match.possession_streak > 0:
-            neutral_chance -= 0.3 # Was 0.2
+            neutral_chance -= 0.15 # Reduced from 0.3
         if abs(match.home_team.momentum - match.away_team.momentum) > 15:
-            neutral_chance -= 0.2
+            neutral_chance -= 0.1 # Reduced from 0.2
             
         if match.chaos_level > 0.4:
-            neutral_chance -= 0.15
+            neutral_chance -= 0.05 # Reduced from 0.15
             
-        # Ensure it doesn't go too low
-        neutral_chance = max(0.3, neutral_chance) # Was 0.4
+        # Ensure it doesn't go too low - Keep it at 0.6 minimum (Events only 40% of time max)
+        neutral_chance = max(0.6, neutral_chance) 
             
         if random.random() < neutral_chance:
             # If we are NOT in a pressure phase, we do a neutral event
@@ -177,15 +177,19 @@ class SimulationEngine:
         context = {'team': att_team, 'player': attacker, 'opponent': def_team}
 
         # Events
-        # AGGRESSIVE TUNING 2.0: Goal threshold raised to +14 (Was +8) to stop 7-6 scores
-        if att_score > def_score + 14:
+        # AGGRESSIVE SUPPRESSION: Goal threshold is dynamic
+        # Base is +15. For every goal the team already has, it increases by +5
+        # If team has 2 goals, threshold is 15 + 10 = 25.
+        target_threshold = 15 + (att_team.score * 5)
+        
+        if att_score > def_score + target_threshold:
             # GOAL
             return EVENT_GOAL, context
-        elif att_score > def_score + 4:
+        elif att_score > def_score + 5:
             # SAVE (GK heroics)
             context['player'] = gk 
             return EVENT_SAVE, context
-        elif att_score > def_score - 2:
+        elif att_score > def_score - 1:
              # SHOT 
              return EVENT_SHOT, context
         else:
