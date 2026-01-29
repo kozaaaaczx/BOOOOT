@@ -206,16 +206,25 @@ class CommentaryEngine:
                 "{player} uderza z półobrotu! Co za technika!",
                 "Typowy strzał snajpera, {player} mierzony uderzeniem szuka rogu!",
                 "Potężny szczupak {player}! Piłka leci jak pocisk!",
+                "{player} odwraca się z piłką i natychmiast uderza, bramkarz zaskoczony!",
             ],
             "shot_MF": [
                 "{player} huknął z dystansu, sypią się iskry!",
                 "Techniczny strzał {player} zza pola karnego, piłka dokręcona!",
                 "{player} próbuje zaskoczyć bramkarza strzałem 'z fałsza'!",
+                "Ależ bomba {player}! Bramkarz odprowadza piłkę tylko wzrokiem!",
             ],
             "shot_DF": [
                 "{player} najwyżej skacze do główki! Potężne uderzenie obrońcy!",
                 "Obrońca {player} spróbował sił z dystansu, co za bomba!",
                 "{player} zamyka akcję na długim słupku, strzał rozpaczy!",
+            ],
+            # GOALKEEPER REACTIONS TO SHOTS (New)
+            "shot_reaction_GK": [
+                "Bramkarz z niepokojem odprowadza piłkę wzrokiem.",
+                "GK pewnie kontroluje tor lotu futbolówki.",
+                "Bramkarz koryguje ustawienie, widząc tor lotu piłki.",
+                "Golkiper tylko wzrokiem sprawdził, czy piłka nie wpada pod poprzeczkę.",
             ],
             "meta": [
                 "Mimo optycznej przewagi, {dominator} wciąż nie potrafi tego udokumentować.",
@@ -306,6 +315,12 @@ class CommentaryEngine:
         try:
             msg = template.format(team=team_name, player=player_name, dominator=dominator)
             
+            # GOALKEEPER REACTION INJECTOR FOR SHOTS
+            if event_type == EVENT_SHOT and random.random() < 0.3:
+                gk_options = self.templates.get("shot_reaction_GK", [])
+                if gk_options:
+                    msg += " " + random.choice(gk_options)
+
             # BROADCAST STYLE VARIATION INJECTOR
             if random.random() < 0.30:
                 p_list = ["Warto zauważyć, że ", "Wydaje się, że ", "Faktycznie, ", "Często widzimy, że ", 
