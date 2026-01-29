@@ -177,6 +177,22 @@ class CommentaryEngine:
                 "🟥 Brutalny faul! Sędzia bez wahania pokazuje {player} drogę do szatni!",
                 "🟥 Skandaliczne zachowanie {player}, czerwony kartonik wędruje w górę!",
             ],
+            # POSITION SPECIFIC OVERRIDES
+            "attack_ST": [
+                "{player} obraca się z obrońcą na plecach i szuka luki w szesnastce!",
+                "Klasyczna 'dziewiątka'! {player} czeka na prostopadłe podanie.",
+                "{player} walczy o pozycję w polu karnym, zaraz będzie groźnie!",
+            ],
+            "attack_MF": [
+                "{player} dyktuje tempo gry, rozrzuca piłkę na skrzydła.",
+                "Genialny przegląd pola {player}, szuka luki w obronie.",
+                "{player} holuje piłkę przez środek boiska, nikt go nie atakuje.",
+            ],
+            "attack_DF": [
+                "{player} podłącza się do akcji ofensywnej, odważne wyjście obrońcy!",
+                "Długi przerzut od {player}, szuka napastników dalekim podaniem.",
+                "Stoper {player} zapędził się pod pole karne rywala!",
+            ],
             "meta": [
                 "Mimo optycznej przewagi, {dominator} wciąż nie potrafi tego udokumentować.",
                 "Obraz gry sugeruje dominację jednej strony, ale wynik wciąż pozostaje otwarty.",
@@ -248,9 +264,23 @@ class CommentaryEngine:
         elif match.possession_team:
             team_name = match.possession_team.name
             
-        player_name = "Zawodnik"
-        if context and context.get('player'):
-            player_name = context.get('player').name
+        player_obj = context.get('player') if context else None
+        player_name = player_obj.name if player_obj else "Zawodnik"
+        player_pos = player_obj.position.strip().upper() if player_obj else "Unknown"
+
+        # Position Grouping
+        pos_group = "MF"
+        if any(x in player_pos for x in ["ST", "CF", "NAPASTNIK"]): pos_group = "ST"
+        elif any(x in player_pos for x in ["CB", "LB", "RB", "GK", "OBROŃCA", "BR"]): pos_group = "DF"
+        
+        # Position-aware overrides for ATTACK
+        if event_type == EVENT_ATTACK and random.random() < 0.35:
+            pos_key = f"attack_{pos_group}"
+            if pos_key in self.templates:
+                pos_options = self.templates[pos_key]
+                valid_pos = [t for t in pos_options if t not in self.last_templates]
+                if valid_pos:
+                    template = random.choice(valid_pos)
         
         # Meta commentary helper
         dominator = match.home_team.name if match.home_team.momentum > match.away_team.momentum else match.away_team.name
@@ -262,10 +292,17 @@ class CommentaryEngine:
                 dominator=dominator
             )
             
-            # VARIATION INJECTOR: Slightly modify neutral sentences for even more variety
-            if event_type == EVENT_NOTHING and random.random() < 0.3:
-                suffixes = ["", " sędzia spogląda na zegarek.", " kibice reagują głośnym pomrukiem.", " tempo na chwilę siadło.", " zawodnicy łapią oddech."]
-                msg += random.choice(suffixes)
+            # VARIATION INJECTOR
+            if random.random() < 0.25:
+                if event_type == EVENT_NOTHING:
+                    prefixes = ["Warto zauważyć, że ", "Wydaje się, że ", "Faktycznie, ", "Często widzimy, że ", "Niezmiennie ", "Można odnieść wrażenie, że "]
+                    if random.random() < 0.5: msg = random.choice(prefixes) + msg[0].lower() + msg[1:]
+                    
+                    suffixes = ["", " sędzia bacznie spogląda na murawę.", " kibice reagują głośnym pomrukiem.", " tempo na chwilę siadło.", " zawodnicy obu stron szukają rytmu.", " gra toczy się w słońcu."]
+                    msg += random.choice(suffixes)
+                elif event_type == EVENT_ATTACK:
+                    suffixes = [" Akcja nabiera rumieńców!", " Obrona musi być czujna.", " To może być kluczowy moment.", " Napięcie rośnie!", " Kibice wstają z miejsc!"]
+                    msg += random.choice(suffixes)
                 
             return msg
         except Exception as e:

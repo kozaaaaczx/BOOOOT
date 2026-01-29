@@ -61,17 +61,22 @@ class SimulationEngine:
              match.possession_streak += 1
         else:
              # Regular OVR/Momentum based toss
-             # Reduced momentum impact on possession from /4 to /8
-             home_adv = (match.home_team.get_avg_ovr() - match.away_team.get_avg_ovr()) + (match.home_team.momentum - match.away_team.momentum) / 8
+             # Momentum influence refined
+             mom_diff = (match.home_team.momentum - match.away_team.momentum)
+             home_ovr_diff = (match.home_team.get_avg_ovr() - match.away_team.get_avg_ovr())
              
-             # CATCH-UP MECHANIC: If home is winning by 2+, reduce their possession chance
+             home_adv = home_ovr_diff + (mom_diff / 10)
+             
+             # CATCH-UP MECHANIC: If winning by 2+, reduce possession chance
              score_diff = match.home_team.score - match.away_team.score
              if score_diff >= 2:
-                 home_adv -= 15
+                 home_adv -= (5 * score_diff) # Scalable penalty
              elif score_diff <= -2:
-                 home_adv += 15
+                 home_adv += (5 * abs(score_diff)) # Scalable bonus
                  
              home_prob = 0.5 + (home_adv / 100)
+             home_prob = max(0.2, min(0.8, home_prob)) # Caps
+             
              attacking_team = match.home_team if random.random() < home_prob else match.away_team
              match.possession_team = attacking_team
              match.possession_streak = 0
@@ -149,7 +154,7 @@ class SimulationEngine:
             # If player has scored, reduce their weight to prevent one person dominating (e.g. Lewandowski 7 goals)
             # Formula: New Weight = Weight / (1 + Goals * 2)
             if p.goals > 0:
-                w = w / (1 + p.goals * 2)
+                w = w / (1 + p.goals * 3) # Even harsher cooldown
                 
             weights.append(w)
             
@@ -204,8 +209,17 @@ class SimulationEngine:
         elif att_score > def_score - 1:
              # SHOT 
              return EVENT_SHOT, context
-        else:
-             return EVENT_ATTACK, context
+        
+        # RANDOM FOULS (Chaos dependent)
+        foul_roll = random.random()
+        if foul_roll < (0.05 + (match.chaos_level * 0.1)):
+            if foul_roll < 0.005: # High punishment
+                return EVENT_RED_CARD, context
+            elif foul_roll < 0.02:
+                return EVENT_YELLOW_CARD, context
+            return EVENT_FOUL, context
+            
+        return EVENT_ATTACK, context
 
     def _apply_outcome(self, match, event_type, context):
         att_team = context.get('team')
@@ -238,6 +252,15 @@ class SimulationEngine:
             player.update_confidence(1)
             player.update_rating(0.3) # Increased from 0.2
             
+        elif event_type == EVENT_YELLOW_CARD:
+            player.update_rating(-0.2)
+            player.update_confidence(-1)
+            match.chaos_level += 0.02
+
+        elif event_type == EVENT_FOUL:
+            player.update_rating(-0.1)
+            match.chaos_level += 0.01
+
         elif event_type == EVENT_ATTACK:
             # Slight momentum build
             att_team.update_momentum(3)
