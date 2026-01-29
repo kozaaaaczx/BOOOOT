@@ -133,6 +133,13 @@ class SimulationEngine:
                 w = 4
             else:
                 w = 1 # Defenders
+            
+            # SCORER COOLDOWN / DIMINISHING RETURNS
+            # If player has scored, reduce their weight to prevent one person dominating (e.g. Lewandowski 7 goals)
+            # Formula: New Weight = Weight / (1 + Goals * 2)
+            if p.goals > 0:
+                w = w / (1 + p.goals * 2)
+                
             weights.append(w)
             
         attacker = random.choices(outfield_players, weights=weights, k=1)[0]
@@ -157,6 +164,9 @@ class SimulationEngine:
         score_diff = att_team.score - def_team.score
         if score_diff >= 2:
             att_score -= 5 # Complacency
+            # MERCY RULE: If winning by 4+, massive penalty (prevent 10-1 carnage)
+            if score_diff >= 4:
+                att_score -= 15
         elif score_diff <= -2:
             att_score += 5 # Desperation push
         
