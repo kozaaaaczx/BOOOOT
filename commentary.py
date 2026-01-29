@@ -4,7 +4,10 @@ from config import *
 class CommentaryEngine:
     def __init__(self):
         self.last_templates = []
-        self.history_size = 12 # Increased slightly to ensure even more variety
+        self.last_prefixes = []
+        self.last_suffixes = []
+        self.history_size = 15 # Increased for even more variety
+        self.extra_history_size = 8 # History for prefixes/suffixes
 
         self.templates = {
             EVENT_NOTHING: {
@@ -182,22 +185,46 @@ class CommentaryEngine:
                 "{player} obraca się z obrońcą na plecach i szuka luki w szesnastce!",
                 "Klasyczna 'dziewiątka'! {player} czeka na prostopadłe podanie.",
                 "{player} walczy o pozycję w polu karnym, zaraz będzie groźnie!",
+                "{player} prosi o piłkę na wolne pole, chce to sam wykończyć!",
+                "Snajperski instynkt {player}, już czai się na błąd stoperów.",
             ],
             "attack_MF": [
                 "{player} dyktuje tempo gry, rozrzuca piłkę na skrzydła.",
                 "Genialny przegląd pola {player}, szuka luki w obronie.",
                 "{player} holuje piłkę przez środek boiska, nikt go nie atakuje.",
+                "Precyzyjne kierowanie ruchem przez {player}, prawdziwy dyrygent.",
+                "{player} szuka partnerów krótkimi podaniami, uspokaja grę.",
             ],
             "attack_DF": [
                 "{player} podłącza się do akcji ofensywnej, odważne wyjście obrońcy!",
                 "Długi przerzut od {player}, szuka napastników dalekim podaniem.",
                 "Stoper {player} zapędził się pod pole karne rywala!",
+                "Siłowe rozwiązanie {player}, przepycha się w środku pola.",
+                "Defensywa {team} zaczyna akcję od {player}.",
+            ],
+            "shot_ST": [
+                "{player} uderza z półobrotu! Co za technika!",
+                "Typowy strzał snajpera, {player} mierzony uderzeniem szuka rogu!",
+                "Potężny szczupak {player}! Piłka leci jak pocisk!",
+            ],
+            "shot_MF": [
+                "{player} huknął z dystansu, sypią się iskry!",
+                "Techniczny strzał {player} zza pola karnego, piłka dokręcona!",
+                "{player} próbuje zaskoczyć bramkarza strzałem 'z fałsza'!",
+            ],
+            "shot_DF": [
+                "{player} najwyżej skacze do główki! Potężne uderzenie obrońcy!",
+                "Obrońca {player} spróbował sił z dystansu, co za bomba!",
+                "{player} zamyka akcję na długim słupku, strzał rozpaczy!",
             ],
             "meta": [
                 "Mimo optycznej przewagi, {dominator} wciąż nie potrafi tego udokumentować.",
                 "Obraz gry sugeruje dominację jednej strony, ale wynik wciąż pozostaje otwarty.",
                 "To niesamowite, że mamy taki wynik przy tak dużej liczbie sytuacji.",
                 "Taktyka {dominator} wydaje się przynosić owoce, kontrolują przebieg meczu.",
+                "Widzimy wyraźny pomysł na grę u planu {dominator}.",
+                "Statystyki posiadania piłki są miażdżące dla rywali {dominator}.",
+                "Mecz toczy się pod dyktando jednej drużyny, {dominator} dyktuje warunki.",
             ]
         }
 
@@ -209,25 +236,24 @@ class CommentaryEngine:
         options = []
         
         if event_type == EVENT_NOTHING:
+            # RANDOM META TRIGGER (12% chance for meta commentary instead of neutral)
+            if random.random() < 0.12:
+                options = self.templates["meta"]
             # 1. GRADUAL CHAOS LOGIC
-            if match.chaos_level > 0.75:
+            elif match.chaos_level > 0.8:
                 options = self.templates[EVENT_NOTHING]["high_chaos"]
             elif match.chaos_level > 0.45:
                 options = self.templates[EVENT_NOTHING]["low_chaos"]
-            
             # 2. GRADUAL PRESSURE LOGIC
-            elif (match.possession_streak > 4 or 
-                  abs(match.home_team.momentum - match.away_team.momentum) > 35):
+            elif (match.possession_streak > 4 or abs(match.home_team.momentum - match.away_team.momentum) > 35):
                 options = self.templates[EVENT_NOTHING]["high_pressure"]
-            elif (match.possession_streak > 2 or 
-                  abs(match.home_team.momentum - match.away_team.momentum) > 18):
+            elif (match.possession_streak > 2 or abs(match.home_team.momentum - match.away_team.momentum) > 18):
                 options = self.templates[EVENT_NOTHING]["low_pressure"]
-            
             # 3. PHASE-BASED NEUTRAL LOGIC
             else:
                 if match.current_minute <= 30:
                     options = self.templates[EVENT_NOTHING]["early_neutral"]
-                elif match.current_minute <= 70:
+                elif match.current_minute <= 75:
                     options = self.templates[EVENT_NOTHING]["mid_neutral"]
                 else:
                     options = self.templates[EVENT_NOTHING]["late_neutral"]
@@ -240,70 +266,86 @@ class CommentaryEngine:
         if not options:
             return "..."
 
-        # ADVANCED VARIETY CHECK
-        # Filter out templates used in the last `history_size` turns
+        # VARIETY CHECK: Avoid repeating the same core template
         valid_options = [t for t in options if t not in self.last_templates]
-        
         if not valid_options:
-            # If all are used, at least avoid the last 4 items
-            valid_options = [t for t in options if t not in self.last_templates[-4:]]
+            valid_options = [t for t in options if t not in self.last_templates[-5:]]
             if not valid_options:
                  valid_options = options 
 
         template = random.choice(valid_options)
-        
-        # Track history
         self.last_templates.append(template)
         if len(self.last_templates) > self.history_size:
             self.last_templates.pop(0)
 
         # Context Preparation
-        team_name = "Drużyna"
-        if context and context.get('team'):
-            team_name = context.get('team').name
-        elif match.possession_team:
-            team_name = match.possession_team.name
-            
+        team_obj = context.get('team') if context else match.possession_team
+        team_name = team_obj.name if team_obj else "Drużyna"
+        
         player_obj = context.get('player') if context else None
         player_name = player_obj.name if player_obj else "Zawodnik"
         player_pos = player_obj.position.strip().upper() if player_obj else "Unknown"
 
-        # Position Grouping
+        # Position Grouping logic
         pos_group = "MF"
         if any(x in player_pos for x in ["ST", "CF", "NAPASTNIK"]): pos_group = "ST"
-        elif any(x in player_pos for x in ["CB", "LB", "RB", "GK", "OBROŃCA", "BR"]): pos_group = "DF"
+        elif any(x in player_pos for x in ["CB", "LB", "RB", "GK", "OBROŃCA", "BR", "ŚO", "LO", "PO"]): pos_group = "DF"
         
-        # Position-aware overrides for ATTACK
-        if event_type == EVENT_ATTACK and random.random() < 0.35:
-            pos_key = f"attack_{pos_group}"
+        # Position-aware overrides (ATTACK or SHOT)
+        if event_type in [EVENT_ATTACK, EVENT_SHOT] and random.random() < 0.40:
+            prefix_key = "attack" if event_type == EVENT_ATTACK else "shot"
+            pos_key = f"{prefix_key}_{pos_group}"
             if pos_key in self.templates:
                 pos_options = self.templates[pos_key]
                 valid_pos = [t for t in pos_options if t not in self.last_templates]
                 if valid_pos:
                     template = random.choice(valid_pos)
-        
-        # Meta commentary helper
+
         dominator = match.home_team.name if match.home_team.momentum > match.away_team.momentum else match.away_team.name
         
         try:
-            msg = template.format(
-                team=team_name, 
-                player=player_name, 
-                dominator=dominator
-            )
+            msg = template.format(team=team_name, player=player_name, dominator=dominator)
             
-            # VARIATION INJECTOR
-            if random.random() < 0.25:
+            # BROADCAST STYLE VARIATION INJECTOR
+            if random.random() < 0.30:
+                p_list = ["Warto zauważyć, że ", "Wydaje się, że ", "Faktycznie, ", "Często widzimy, że ", 
+                          "Niezmiennie ", "Można odnieść wrażenie, że ", "Proszę państwa, ", "Bez wątpienia ",
+                          "Z perspektywy komentatora, ", "Analizując ustawienie, "]
+                
+                s_list_neutral = ["", " sędzia bacznie spogląda na murawę.", " kibice reagują głośnym pomrukiem.", 
+                                  " tempo na chwilę siadło.", " zawodnicy obu stron szukają rytmu.", " gra toczy się w słońcu.",
+                                  " w powietrzu czuć napięcie.", " trener gestykuluje przy linii.", " walka w środku pola nie ustaje."]
+                
+                s_list_action = [" Akcja nabiera rumieńców!", " Obrona musi być czujna.", " To może być kluczowy moment.", 
+                                 " Napięcie rośnie!", " Kibice wstają z miejsc!", " Ależ to wygląda dynamicznie!",
+                                 " Trybuny szaleją!", " Każdy detal ma teraz znaczenie."]
+
                 if event_type == EVENT_NOTHING:
-                    prefixes = ["Warto zauważyć, że ", "Wydaje się, że ", "Faktycznie, ", "Często widzimy, że ", "Niezmiennie ", "Można odnieść wrażenie, że "]
-                    if random.random() < 0.5: msg = random.choice(prefixes) + msg[0].lower() + msg[1:]
-                    
-                    suffixes = ["", " sędzia bacznie spogląda na murawę.", " kibice reagują głośnym pomrukiem.", " tempo na chwilę siadło.", " zawodnicy obu stron szukają rytmu.", " gra toczy się w słońcu."]
-                    msg += random.choice(suffixes)
+                    # Pick Prefix
+                    valid_p = [p for p in p_list if p not in self.last_prefixes]
+                    if not valid_p: valid_p = p_list
+                    prefix = random.choice(valid_p)
+                    self.last_prefixes.append(prefix)
+                    if len(self.last_prefixes) > self.extra_history_size: self.last_prefixes.pop(0)
+
+                    if random.random() < 0.5: msg = prefix + msg[0].lower() + msg[1:]
+
+                    # Pick Suffix
+                    valid_s = [s for s in s_list_neutral if s not in self.last_suffixes]
+                    if not valid_s: valid_s = s_list_neutral
+                    suffix = random.choice(valid_s)
+                    self.last_suffixes.append(suffix)
+                    if len(self.last_suffixes) > self.extra_history_size: self.last_suffixes.pop(0)
+                    msg += suffix
+
                 elif event_type == EVENT_ATTACK:
-                    suffixes = [" Akcja nabiera rumieńców!", " Obrona musi być czujna.", " To może być kluczowy moment.", " Napięcie rośnie!", " Kibice wstają z miejsc!"]
-                    msg += random.choice(suffixes)
+                    valid_s = [s for s in s_list_action if s not in self.last_suffixes]
+                    if not valid_s: valid_s = s_list_action
+                    suffix = random.choice(valid_s)
+                    self.last_suffixes.append(suffix)
+                    if len(self.last_suffixes) > self.extra_history_size: self.last_suffixes.pop(0)
+                    msg += suffix
                 
             return msg
-        except Exception as e:
+        except Exception:
             return template
