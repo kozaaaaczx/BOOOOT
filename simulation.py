@@ -15,19 +15,30 @@ class SimulationEngine:
         self._update_fatigue(match)
         self._update_chaos(match)
         
-        # 2. DECISION LAYER (Balance Rule - EXTREME SUPPRESSION)
-        neutral_chance = 0.92 # Increased from 0.85 - more 'boring' minutes
-        # Reduce 'nothing happens' if momentum is high or streak is active, but less aggressively
+        # 2. DECISION LAYER (Dynamic Match Pacing)
+        # Base neutral chance decreases slightly over time to increase action in late game
+        base_neutral = 0.90
+        if minute > 30: base_neutral -= 0.05
+        if minute > 70: base_neutral -= 0.05
+        
+        neutral_chance = base_neutral
+        
+        # INCREASE ACTION if score is tied or very close (1 goal diff)
+        score_diff_abs = abs(match.home_team.score - match.away_team.score)
+        if score_diff_abs <= 1:
+            neutral_chance -= 0.05
+            
+        # Reduce 'nothing happens' if momentum is high or streak is active
         if match.possession_streak > 0:
-            neutral_chance -= 0.15 # Reduced from 0.3
-        if abs(match.home_team.momentum - match.away_team.momentum) > 15:
-            neutral_chance -= 0.1 # Reduced from 0.2
+            neutral_chance -= 0.1
+        if abs(match.home_team.momentum - match.away_team.momentum) > 20:
+            neutral_chance -= 0.1
             
-        if match.chaos_level > 0.4:
-            neutral_chance -= 0.05 # Reduced from 0.15
+        if match.chaos_level > 0.5:
+            neutral_chance -= 0.1
             
-        # Ensure it doesn't go too low - Keep it at 0.6 minimum (Events only 40% of time max)
-        neutral_chance = max(0.6, neutral_chance) 
+        # Final safety bounds
+        neutral_chance = max(0.55, min(0.95, neutral_chance))
             
         if random.random() < neutral_chance:
             # If we are NOT in a pressure phase, we do a neutral event
@@ -151,12 +162,13 @@ class SimulationEngine:
 
         # Action Roll
         # Attack roll vs Defense roll
-        # Reduced variance to make OVR matter more and reduce random goal fests
-        att_score = attacker.get_effective_ovr() + random.randint(-10, 15) # Was -15, 20
-        def_score = gk.get_effective_ovr() + random.randint(-5, 10) + 5 # Reduced variance here too
+        # Normalized variance
+        att_score = attacker.get_effective_ovr() + random.randint(-12, 12)
+        def_score = gk.get_effective_ovr() + random.randint(-8, 8) + 5
         
-        # Momentum impact - Decreased impact to prevent snowballing
-        att_score += (att_team.momentum - 50) / 6
+        # Momentum impact - Quadratic-ish factor
+        mom_diff = (att_team.momentum - def_team.momentum)
+        att_score += (mom_diff / 5) # Increased weight of momentum for variety
         
         # CATCH-UP LOGIC vs SNOWBALL PREVENTION
         # If attacking team is winning by 2+, they relax slightly (lower score)

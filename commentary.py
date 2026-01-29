@@ -21,6 +21,10 @@ class CommentaryEngine:
                     "Murawa dzisiaj w idealnym stanie, piłka szybko chodzi między zawodnikami.",
                     "Dużo wzajemnego szacunku z obu stron, nikt nie otwiera przyłbicy.",
                     "Lekki wiatr utrudnia precyzyjne przerzuty, gra toczy się nisko.",
+                    "Stadion wypełniony po brzegi, atmosfera gęstnieje z każdą minutą.",
+                    "{team} wymienia dziesiątki podań na własnej połowie.",
+                    "Spokojne wprowadzenie piłki przez stoperów {team}.",
+                    "Początkowe minuty to typowe 'badanie terenu'.",
                 ],
                 "mid_neutral": [
                     "Taktyczne szachy na murawie, walka o każdy metr kwadratowy.",
@@ -35,6 +39,10 @@ class CommentaryEngine:
                     "Środkowi pomocnicy mają dzisiaj mnóstwo pracy, to tam rozstrzyga się los meczu.",
                     "{team} próbuje przejąć kontrolę, ale brakuje im kreatywności w ofensywie.",
                     "Solidna gra w defensywie obu ekip, napastnicy są dzisiaj odcięci od podań.",
+                    "Gra 'na rzut monety' w środku pola, nikt nie dominuje.",
+                    "Oba zespoły zdają się być zadowolone z obecnego tempa.",
+                    "Techniczny popis w wykonaniu pomocników zespołu {team}.",
+                    "Szukanie luki w szczelnej defensywie przeciwnika.",
                 ],
                 "late_neutral": [
                     "Zmęczenie daje o sobie znać, zawodnicy poruszają się nieco wolniej.",
@@ -49,6 +57,10 @@ class CommentaryEngine:
                     "Gra na czas z jednej strony, nieporadne ataki z drugiej.",
                     "Napięcie rośnie z każdą sekundą, jedna bramka może teraz rozstrzygnąć wszystko.",
                     "Wyraźny brak tchu u niektórych zawodników, to już walka charakterów.",
+                    "Obie ekipy zdają się czekać na rzuty karne.",
+                    "Ostatnie akordy tego spotkania, chaos bierze górę nad taktyką.",
+                    "Piłka wybita na oślep pod pole karne rywala.",
+                    "Bramkarz kradnie cenne sekundy przy wznowieniu gry.",
                 ],
                 "low_pressure": [
                     "{team} próbuje wyżej podejść pod rywala, zaczyna się lekki nacisk.",
@@ -144,6 +156,10 @@ class CommentaryEngine:
                 "⚽ Gol widmo? Nie, sędzia wskazuje na środek! {player} bohaterem!",
                 "⚽ Czysta poezja! {player} umieszcza piłkę tuż przy słupku!",
                 "⚽ Kapitan {player} bierze ciężar na swoje barki i strzela gola!",
+                "⚽ Fantastyczny wolej! {player} trafia w samo okienko!",
+                "⚽ Ależ comeback! {player} wyrównuje stan spotkania!",
+                "⚽ Egzekucja! {player} nie marnuje takiej okazji w szesnastce!",
+                "⚽ Piłka po rykoszecie myli bramkarza, ale gol to gol! Strzelcem {player}!",
             ],
             EVENT_FOUL: [
                 "Brzydki faul, {player} zdecydowanie przesadził z agresją w tej walce.",
@@ -173,21 +189,22 @@ class CommentaryEngine:
         if match.mode == 'fast' and event_type not in [EVENT_GOAL, EVENT_RED_CARD]:
              return None
 
+        # Base templates selection
         options = []
         
         if event_type == EVENT_NOTHING:
             # 1. GRADUAL CHAOS LOGIC
-            if match.chaos_level > 0.7:
+            if match.chaos_level > 0.75:
                 options = self.templates[EVENT_NOTHING]["high_chaos"]
-            elif match.chaos_level > 0.4:
+            elif match.chaos_level > 0.45:
                 options = self.templates[EVENT_NOTHING]["low_chaos"]
             
             # 2. GRADUAL PRESSURE LOGIC
-            elif (match.possession_streak > 3 or 
-                  abs(match.home_team.momentum - match.away_team.momentum) > 30):
+            elif (match.possession_streak > 4 or 
+                  abs(match.home_team.momentum - match.away_team.momentum) > 35):
                 options = self.templates[EVENT_NOTHING]["high_pressure"]
-            elif (match.possession_streak > 1 or 
-                  abs(match.home_team.momentum - match.away_team.momentum) > 15):
+            elif (match.possession_streak > 2 or 
+                  abs(match.home_team.momentum - match.away_team.momentum) > 18):
                 options = self.templates[EVENT_NOTHING]["low_pressure"]
             
             # 3. PHASE-BASED NEUTRAL LOGIC
@@ -202,20 +219,20 @@ class CommentaryEngine:
         elif event_type == "meta":
              options = self.templates["meta"]
         else:
-            # Standard events (ATTACK, SHOT, SAVE, GOAL, etc.)
             options = self.templates.get(event_type, [])
 
         if not options:
             return "..."
 
-        # VARIETY CHECK: Avoid repetition using history tracking
+        # ADVANCED VARIETY CHECK
+        # Filter out templates used in the last `history_size` turns
         valid_options = [t for t in options if t not in self.last_templates]
         
         if not valid_options:
-            # If all sentences in this small category were used, forget the oldest ones for this call
-            valid_options = [t for t in options if t not in self.last_templates[-3:]]
+            # If all are used, at least avoid the last 4 items
+            valid_options = [t for t in options if t not in self.last_templates[-4:]]
             if not valid_options:
-                 valid_options = options # Total fallback
+                 valid_options = options 
 
         template = random.choice(valid_options)
         
@@ -239,11 +256,17 @@ class CommentaryEngine:
         dominator = match.home_team.name if match.home_team.momentum > match.away_team.momentum else match.away_team.name
         
         try:
-            return template.format(
+            msg = template.format(
                 team=team_name, 
                 player=player_name, 
                 dominator=dominator
             )
+            
+            # VARIATION INJECTOR: Slightly modify neutral sentences for even more variety
+            if event_type == EVENT_NOTHING and random.random() < 0.3:
+                suffixes = ["", " sędzia spogląda na zegarek.", " kibice reagują głośnym pomrukiem.", " tempo na chwilę siadło.", " zawodnicy łapią oddech."]
+                msg += random.choice(suffixes)
+                
+            return msg
         except Exception as e:
-            # Safe fallback if formatting fails
             return template
