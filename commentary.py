@@ -146,24 +146,48 @@ class CommentaryEngine:
                 "Robinsonada w wielkim stylu! {player} ratuje swój zespół!",
                 "{player} wybija piłkę z linii bramkowej! Co za poświęcenie!",
             ],
-            EVENT_GOAL: [
-                "⚽ GOOOOL! {player} otwiera wynik, stadion oszalał!",
-                "⚽ ALEŻ BRAMKA! {player} zdejmuje pajęczynę z samego spojenia!",
-                "⚽ Stadiony świata! {player} daje prowadzenie drużynie {team}!",
-                "⚽ Bramkarz bez szans, precyzyjny strzał {player} ociera się o słupek i wpada!",
-                "⚽ To jest nokaut! {player} wykorzystuje błąd rywali i pewnie uderza!",
-                "⚽ Fenomenalne uderzenie! {player} celebruje gola z kolegami z {team}!",
-                "⚽ Siatka pęka! {player} nie dał cienia szansy bramkarzowi!",
-                "⚽ Co za zimna krew! {player} mija bramkarza i pakuje piłkę do pustej bramki!",
-                "⚽ Radość na ławce rezerwowych! {player} trafia po genialnej akcji zespołowej!",
-                "⚽ Gol widmo? Nie, sędzia wskazuje na środek! {player} bohaterem!",
-                "⚽ Czysta poezja! {player} umieszcza piłkę tuż przy słupku!",
-                "⚽ Kapitan {player} bierze ciężar na swoje barki i strzela gola!",
-                "⚽ Fantastyczny wolej! {player} trafia w samo okienko!",
-                "⚽ Ależ comeback! {player} wyrównuje stan spotkania!",
-                "⚽ Egzekucja! {player} nie marnuje takiej okazji w szesnastce!",
-                "⚽ Piłka po rykoszecie myli bramkarza, ale gol to gol! Strzelcem {player}!",
-            ],
+            EVENT_GOAL: {
+                "opening": [
+                    "⚽ GOOOOL! {player} otwiera wynik, stadion oszalał!",
+                    "⚽ Stadiony świata! {player} daje prowadzenie drużynie {team}!",
+                    "⚽ Pierwszy cios należy do {team}! {player} trafia do siatki!",
+                ],
+                "equalizer": [
+                    "⚽ Ależ comeback! {player} wyrównuje stan spotkania!",
+                    "⚽ Remis! {player} nie daje za wygraną i doprowadza do wyrównania!",
+                    "⚽ Wszystko zaczyna się od nowa, {player} daje wyrównanie!",
+                ],
+                "lead": [
+                    "⚽ Stadiony świata! {player} daje prowadzenie drużynie {team}!",
+                    "⚽ {team} wychodzi na prowadzenie! {player} bohaterem akcji!",
+                    "⚽ Przełamanie! {player} wyprowadza swój zespół na przód!",
+                ],
+                "increase": [
+                    "⚽ To jest nokaut! {player} wykorzystuje błąd rywali i podwyższa prowadzenie!",
+                    "⚽ Kolejne uderzenie {team}! {player} nie ma litości!",
+                    "⚽ Dystans rośnie! {player} strzela, a {team} ucieka z wynikiem!",
+                    "⚽ Dominacja potwierdzona! {player} trafia na {home_score}:{away_score}!",
+                ],
+                "catch_up": [
+                    "⚽ Kontakt! {player} strzela gola i {team} wciąż ma nadzieję!",
+                    "⚽ Gol pocieszenia? A może początek pogoni! {player} trafia na {home_score}:{away_score}!",
+                    "⚽ {team} odrabia straty! {player} daje sygnał do ataku!",
+                ],
+                "generic": [
+                    "⚽ ALEŻ BRAMKA! {player} zdejmuje pajęczynę z samego spojenia!",
+                    "⚽ Bramkarz bez szans, precyzyjny strzał {player} ociera się o słupek i wpada!",
+                    "⚽ Fenomenalne uderzenie! {player} celebruje gola z kolegami z {team}!",
+                    "⚽ Siatka pęka! {player} nie dał cienia szansy bramkarzowi!",
+                    "⚽ Co za zimna krew! {player} mija bramkarza i pakuje piłkę do pustej bramki!",
+                    "⚽ Radość na ławce rezerwowych! {player} trafia po genialnej akcji zespołowej!",
+                    "⚽ Gol widmo? Nie, sędzia wskazuje na środek! {player} bohaterem!",
+                    "⚽ Czysta poezja! {player} umieszcza piłkę tuż przy słupku!",
+                    "⚽ Kapitan {player} bierze ciężar na swoje barki i strzela gola!",
+                    "⚽ Fantastyczny wolej! {player} trafia w samo okienko!",
+                    "⚽ Egzekucja! {player} nie marnuje takiej okazji w szesnastce!",
+                    "⚽ Piłka po rykoszecie myli bramkarza, ale gol to gol! Strzelcem {player}!",
+                ]
+            },
             EVENT_FOUL: [
                 "Brzydki faul, {player} zdecydowanie przesadził z agresją w tej walce.",
                 "Gwizdek arbitra. {player} przerywa akcję rywala w sposób nieprzepisowy.",
@@ -269,6 +293,25 @@ class CommentaryEngine:
         
         elif event_type == "meta":
              options = self.templates["meta"]
+        elif event_type == EVENT_GOAL:
+            goal_dict = self.templates.get(EVENT_GOAL, {})
+            att_team = context.get('team')
+            def_team = context.get('opponent')
+            
+            # Determine score state (Scores are already updated in simulation.py)
+            if att_team.score == 1 and def_team.score == 0:
+                sub_key = "opening"
+            elif att_team.score == def_team.score:
+                sub_key = "equalizer"
+            elif att_team.score > def_team.score:
+                if att_team.score == def_team.score + 1:
+                    sub_key = "lead"
+                else:
+                    sub_key = "increase"
+            else:
+                sub_key = "catch_up"
+            
+            options = goal_dict.get(sub_key, []) + goal_dict.get("generic", [])
         else:
             options = self.templates.get(event_type, [])
 
@@ -313,7 +356,13 @@ class CommentaryEngine:
         dominator = match.home_team.name if match.home_team.momentum > match.away_team.momentum else match.away_team.name
         
         try:
-            msg = template.format(team=team_name, player=player_name, dominator=dominator)
+            msg = template.format(
+                team=team_name, 
+                player=player_name, 
+                dominator=dominator,
+                home_score=match.home_team.score,
+                away_score=match.away_team.score
+            )
             
             # GOALKEEPER REACTION INJECTOR FOR SHOTS
             if event_type == EVENT_SHOT and random.random() < 0.3:

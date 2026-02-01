@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import os
 import asyncio
-from dotenv import load_dotenv
 from models import Team, Match
 from simulation import SimulationEngine
 from utils import parse_squad_text, generate_random_squad
@@ -12,9 +11,8 @@ import json
 # Database file
 TEAMS_DB = 'teams.json'
 
-# Load environment variables
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+# Pobieranie tokena bezpośrednio ze zmiennych środowiskowych (Railway)
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Bot setup
 intents = discord.Intents.default()
@@ -177,7 +175,8 @@ def calculate_motm(home_team, away_team):
     return motm
 
 if __name__ == "__main__":
-    if not TOKEN:
-        print("Error: DISCORD_TOKEN not found in .env")
-    else:
+    if TOKEN:
         bot.run(TOKEN)
+    else:
+        print("\n❌ BŁĄD: Brak tokena DISCORD_TOKEN!")
+        print("Wejdź w Railway -> Variables -> Add Variable i dodaj DISCORD_TOKEN\n")
