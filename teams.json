@@ -1,0 +1,1059 @@
+{
+    "<@&1456730453024182494>": {
+        "name": "<@&1456730453024182494>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Jiří Pavlenka",
+                "ovr": 74,
+                "position": "GK"
+            },
+            {
+                "name": "Dominik Piła",
+                "ovr": 66,
+                "position": "LB"
+            },
+            {
+                "name": "Sergio Ramos",
+                "ovr": 83,
+                "position": "CB"
+            },
+            {
+                "name": "Szymon Kurzątkowski",
+                "ovr": 64,
+                "position": "CB"
+            },
+            {
+                "name": "Hubert Molski",
+                "ovr": 63,
+                "position": "RB"
+            },
+            {
+                "name": "Justin Lerma",
+                "ovr": 64,
+                "position": "CDM"
+            },
+            {
+                "name": "Alejandro Granados",
+                "ovr": 64,
+                "position": "CDM"
+            },
+            {
+                "name": "Renzo Insigne",
+                "ovr": 76,
+                "position": "LB"
+            },
+            {
+                "name": "Franco Vázquez",
+                "ovr": 74,
+                "position": "CM"
+            },
+            {
+                "name": "Patrik Wålemark",
+                "ovr": 72,
+                "position": "RM"
+            },
+            {
+                "name": "Gonzalo Carneiro",
+                "ovr": 70,
+                "position": "ST"
+            }
+        ]
+    },
+    "<@&1465115850779656424>": {
+        "name": "<@&1465115850779656424>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Skorupski",
+                "ovr": 79,
+                "position": "GK"
+            },
+            {
+                "name": "Otar Kakabadze",
+                "ovr": 69,
+                "position": "RB"
+            },
+            {
+                "name": "Boško Šutalo",
+                "ovr": 69,
+                "position": "CB"
+            },
+            {
+                "name": "Olafsson",
+                "ovr": 68,
+                "position": "CB"
+            },
+            {
+                "name": "Juan Bernat",
+                "ovr": 75,
+                "position": "LB"
+            },
+            {
+                "name": "Mateusz Klich",
+                "ovr": 71,
+                "position": "CM"
+            },
+            {
+                "name": "Ajdin Hasić",
+                "ovr": 70,
+                "position": "MD"
+            },
+            {
+                "name": "Chambarlain",
+                "ovr": 73,
+                "position": "MD"
+            },
+            {
+                "name": "Jan Faberski",
+                "ovr": 62,
+                "position": "ST"
+            },
+            {
+                "name": "Filip Stojilković",
+                "ovr": 66,
+                "position": "ST"
+            },
+            {
+                "name": "Raheem Sterling",
+                "ovr": 79,
+                "position": "ST"
+            }
+        ]
+    },
+    "<@&1466346184175255615>": {
+        "name": "<@&1466346184175255615>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Péter Gulácsi",
+                "ovr": 85,
+                "position": "GK"
+            },
+            {
+                "name": "Stratos Svarnas",
+                "ovr": 73,
+                "position": "RB"
+            },
+            {
+                "name": "Willi Orbán",
+                "ovr": 84,
+                "position": "CB"
+            },
+            {
+                "name": "Zoran Arsenić",
+                "ovr": 70,
+                "position": "LB"
+            },
+            {
+                "name": "Felippe Carballo",
+                "ovr": 75,
+                "position": "CDM"
+            },
+            {
+                "name": "Jakub Moder",
+                "ovr": 75,
+                "position": "RM"
+            },
+            {
+                "name": "Robert Skov",
+                "ovr": 74,
+                "position": "CAM"
+            },
+            {
+                "name": "Jean Carlos Silva",
+                "ovr": 70,
+                "position": "LM"
+            },
+            {
+                "name": "Karol Świderski",
+                "ovr": 73,
+                "position": "ST"
+            },
+            {
+                "name": "Robert Lewandowski",
+                "ovr": 88,
+                "position": "ST"
+            },
+            {
+                "name": "Ansu Fati",
+                "ovr": 75,
+                "position": "ST"
+            }
+        ]
+    },
+    "<@&1465098346908880908>": {
+        "name": "<@&1465098346908880908>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Mrozek",
+                "ovr": 72,
+                "position": "GK"
+            },
+            {
+                "name": "Ricardo Mangas",
+                "ovr": 72,
+                "position": "LB"
+            },
+            {
+                "name": "Viktor Popov",
+                "ovr": 68,
+                "position": "CB"
+            },
+            {
+                "name": "Slobodan Rubežic",
+                "ovr": 68,
+                "position": "CB"
+            },
+            {
+                "name": "Atilla Szlai",
+                "ovr": 70,
+                "position": "RB"
+            },
+            {
+                "name": "Ivi lopez",
+                "ovr": 72,
+                "position": "CM"
+            },
+            {
+                "name": "Fernandez Dyro",
+                "ovr": 69,
+                "position": "CM"
+            },
+            {
+                "name": "JorThy Mokio",
+                "ovr": 70,
+                "position": "CM"
+            },
+            {
+                "name": "Samed Bazdar }",
+                "ovr": 69,
+                "position": "MD"
+            },
+            {
+                "name": "Jonatan Braut Brunes",
+                "ovr": 72,
+                "position": "ST"
+            },
+            {
+                "name": "Ryan Kent",
+                "ovr": 75,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465111772771127356>": {
+        "name": "<@&1465111772771127356>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Provedel",
+                "ovr": 82,
+                "position": "GK"
+            },
+            {
+                "name": "Jorge Cuenca",
+                "ovr": 74,
+                "position": "CB"
+            },
+            {
+                "name": "Bartlomiej Wdowik",
+                "ovr": 69,
+                "position": "LB"
+            },
+            {
+                "name": "Álex Pozo",
+                "ovr": 71,
+                "position": "RB"
+            },
+            {
+                "name": "Cesar Araujo",
+                "ovr": 69,
+                "position": "CB"
+            },
+            {
+                "name": "Sergio Lozano",
+                "ovr": 71,
+                "position": "CM"
+            },
+            {
+                "name": "Taras Romanczuk",
+                "ovr": 71,
+                "position": "CM"
+            },
+            {
+                "name": "Jesús Imaz",
+                "ovr": 74,
+                "position": "CAM"
+            },
+            {
+                "name": "Peter Olyainka",
+                "ovr": 75,
+                "position": "LM"
+            },
+            {
+                "name": "Kamil Jóźwiak",
+                "ovr": 68,
+                "position": "RM"
+            },
+            {
+                "name": "Afimico Pululu",
+                "ovr": 72,
+                "position": "ST"
+            }
+        ]
+    },
+    "<@&1465103355608170579>": {
+        "name": "<@&1465103355608170579>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Navas",
+                "ovr": 81,
+                "position": "GK"
+            },
+            {
+                "name": "Marcel Wszołek",
+                "ovr": 63,
+                "position": "LB"
+            },
+            {
+                "name": "Sebastian Golak",
+                "ovr": 64,
+                "position": "CB"
+            },
+            {
+                "name": "Adrian Czaprański",
+                "ovr": 66,
+                "position": "CB"
+            },
+            {
+                "name": "Erik Janza",
+                "ovr": 69,
+                "position": "RB"
+            },
+            {
+                "name": "Bogusiewicz",
+                "ovr": 64,
+                "position": "CM"
+            },
+            {
+                "name": "Patryk Skórecki",
+                "ovr": 60,
+                "position": "CM"
+            },
+            {
+                "name": "Abraham Ojo",
+                "ovr": 67,
+                "position": "CM"
+            },
+            {
+                "name": "Roberto Masimo",
+                "ovr": 67,
+                "position": "MD"
+            },
+            {
+                "name": "Paco Alcaler",
+                "ovr": 82,
+                "position": "ST"
+            },
+            {
+                "name": "Kozlowski",
+                "ovr": 66,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465111845047238718>": {
+        "name": "<@&1465111845047238718>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Wojciech Szczęsny",
+                "ovr": 84,
+                "position": "GK"
+            },
+            {
+                "name": "Aleks Ławniczak",
+                "ovr": 68,
+                "position": "CB"
+            },
+            {
+                "name": "Damian Michalski",
+                "ovr": 66,
+                "position": "CB"
+            },
+            {
+                "name": "Roman Yakuba",
+                "ovr": 65,
+                "position": "LB"
+            },
+            {
+                "name": "Łukasz Lucic",
+                "ovr": 64,
+                "position": "RB"
+            },
+            {
+                "name": "Ryoya Morishita",
+                "ovr": 70,
+                "position": "CM"
+            },
+            {
+                "name": "Damian Dąbrowski",
+                "ovr": 68,
+                "position": "CM"
+            },
+            {
+                "name": "Krzystof Kolanko",
+                "ovr": 60,
+                "position": "RM"
+            },
+            {
+                "name": "Jakub Sypek",
+                "ovr": 64,
+                "position": "LM"
+            },
+            {
+                "name": "Leonardo Rocha",
+                "ovr": 68,
+                "position": "ST"
+            },
+            {
+                "name": "Arkadiusz Milik",
+                "ovr": 79,
+                "position": "ST"
+            }
+        ]
+    },
+    "<@&1465272206958395503>": {
+        "name": "<@&1465272206958395503>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Stanek",
+                "ovr": 76,
+                "position": "GK"
+            },
+            {
+                "name": "Jefte",
+                "ovr": 72,
+                "position": "LB"
+            },
+            {
+                "name": "Copete",
+                "ovr": 75,
+                "position": "CB"
+            },
+            {
+                "name": "Chancel Mbemba",
+                "ovr": 73,
+                "position": "CB"
+            },
+            {
+                "name": "Joel Pereira",
+                "ovr": 72,
+                "position": "RB"
+            },
+            {
+                "name": "Antoni Kozubal",
+                "ovr": 71,
+                "position": "CM"
+            },
+            {
+                "name": "Taster Vrancx",
+                "ovr": 74,
+                "position": "CM"
+            },
+            {
+                "name": "Johnsen",
+                "ovr": 74,
+                "position": "CM"
+            },
+            {
+                "name": "Luis Palma",
+                "ovr": 72,
+                "position": "MD"
+            },
+            {
+                "name": "Mikael Ishak",
+                "ovr": 75,
+                "position": "ST"
+            },
+            {
+                "name": "Haraslin",
+                "ovr": 78,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465273232004481183>": {
+        "name": "<@&1465273232004481183>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Bartłomiej Drągowski",
+                "ovr": 76,
+                "position": "GK"
+            },
+            {
+                "name": "Bjorn Meijer",
+                "ovr": 73,
+                "position": "LB"
+            },
+            {
+                "name": "Juljan Shehu",
+                "ovr": 70,
+                "position": "MD"
+            },
+            {
+                "name": "Gerard Martin",
+                "ovr": 76,
+                "position": "MD"
+            },
+            {
+                "name": "Samuel Kozlovský",
+                "ovr": 67,
+                "position": "RB"
+            },
+            {
+                "name": "Andi Zeqiri",
+                "ovr": 72,
+                "position": "MD"
+            },
+            {
+                "name": "Juljan Shehu",
+                "ovr": 70,
+                "position": "MD"
+            },
+            {
+                "name": "Lindon Selahi",
+                "ovr": 71,
+                "position": "MD"
+            },
+            {
+                "name": "Mariusz Fornalczyk",
+                "ovr": 69,
+                "position": "MD"
+            },
+            {
+                "name": "Sebastian Bergier",
+                "ovr": 67,
+                "position": "ST"
+            },
+            {
+                "name": "Ángel Baena",
+                "ovr": 64,
+                "position": "ST"
+            }
+        ]
+    },
+    "<@&1465675652995747931>": {
+        "name": "<@&1465675652995747931>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Tobiasz",
+                "ovr": 67,
+                "position": "GK"
+            },
+            {
+                "name": "Vinagre",
+                "ovr": 72,
+                "position": "RB"
+            },
+            {
+                "name": "Kapuadi",
+                "ovr": 71,
+                "position": "CB"
+            },
+            {
+                "name": "Wszolek",
+                "ovr": 70,
+                "position": "LB"
+            },
+            {
+                "name": "Kapustka",
+                "ovr": 72,
+                "position": "LM"
+            },
+            {
+                "name": "Szymanski",
+                "ovr": 74,
+                "position": "CAM"
+            },
+            {
+                "name": "Mozie",
+                "ovr": 58,
+                "position": "CAM"
+            },
+            {
+                "name": "Capita",
+                "ovr": 69,
+                "position": "RM"
+            },
+            {
+                "name": "Krasniqi",
+                "ovr": 71,
+                "position": "MD"
+            },
+            {
+                "name": "Rajovic",
+                "ovr": 69,
+                "position": "ST"
+            },
+            {
+                "name": "Chodyna",
+                "ovr": 68,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465696323520041010>": {
+        "name": "<@&1465696323520041010>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Ivan pandur ovr",
+                "ovr": 71,
+                "position": "GK"
+            },
+            {
+                "name": "Kędziora ovr",
+                "ovr": 74,
+                "position": "CB"
+            },
+            {
+                "name": "Kort Zouma",
+                "ovr": 75,
+                "position": "MD"
+            },
+            {
+                "name": "M. E. Ellertsson",
+                "ovr": 70,
+                "position": "LB"
+            },
+            {
+                "name": "Vagiannidis  ovr",
+                "ovr": 75,
+                "position": "RB"
+            },
+            {
+                "name": "Sissoko ovr",
+                "ovr": 75,
+                "position": "CDM"
+            },
+            {
+                "name": "Lingard",
+                "ovr": 74,
+                "position": "MD"
+            },
+            {
+                "name": "ovr  Belkebla",
+                "ovr": 74,
+                "position": "MD"
+            },
+            {
+                "name": "Michy Batshuayi",
+                "ovr": 75,
+                "position": "ST"
+            },
+            {
+                "name": "urbanski",
+                "ovr": 68,
+                "position": "MD"
+            },
+            {
+                "name": "Luquinihas",
+                "ovr": 69,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465477301838938406>": {
+        "name": "<@&1465477301838938406>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Rafał Leszczyński",
+                "ovr": 65,
+                "position": "GK"
+            },
+            {
+                "name": "Andrias Edmundsson",
+                "ovr": 64,
+                "position": "MD"
+            },
+            {
+                "name": "Sangré",
+                "ovr": 63,
+                "position": "MD"
+            },
+            {
+                "name": "Aleksandre Kalandadze",
+                "ovr": 63,
+                "position": "MD"
+            },
+            {
+                "name": "Marcin Kamińaski",
+                "ovr": 68,
+                "position": "MD"
+            },
+            {
+                "name": "Zan Rogelj",
+                "ovr": 67,
+                "position": "MD"
+            },
+            {
+                "name": "Matchoi Djaló",
+                "ovr": 68,
+                "position": "MD"
+            },
+            {
+                "name": "Quentin Lecoeuche",
+                "ovr": 66,
+                "position": "MD"
+            },
+            {
+                "name": "Deni Juric",
+                "ovr": 65,
+                "position": "MD"
+            },
+            {
+                "name": "Lukasz Sekulski",
+                "ovr": 65,
+                "position": "MD"
+            },
+            {
+                "name": "Iban Salvador",
+                "ovr": 65,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465368721659793570>": {
+        "name": "<@&1465368721659793570>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Michał Szromnik",
+                "ovr": 70,
+                "position": "GK"
+            },
+            {
+                "name": "Yehor Matsenko",
+                "ovr": 62,
+                "position": "LB"
+            },
+            {
+                "name": "Marko Dijakovic",
+                "ovr": 69,
+                "position": "CB"
+            },
+            {
+                "name": "Mariusz Malec",
+                "ovr": 64,
+                "position": "CB"
+            },
+            {
+                "name": "Marc Llinares",
+                "ovr": 63,
+                "position": "RB"
+            },
+            {
+                "name": "Piotr Samiec‑Talar",
+                "ovr": 0,
+                "position": "CM"
+            },
+            {
+                "name": "Jorge Yriarte",
+                "ovr": 68,
+                "position": "CM"
+            },
+            {
+                "name": "Patryk Sokołowski",
+                "ovr": 65,
+                "position": "CM"
+            },
+            {
+                "name": "Kamil Grosicki",
+                "ovr": 74,
+                "position": "MD"
+            },
+            {
+                "name": "Przemysław Banaszak",
+                "ovr": 67,
+                "position": "ST"
+            },
+            {
+                "name": "Luka Marjanac",
+                "ovr": 64,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1466527552376934411>": {
+        "name": "<@&1466527552376934411>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Maciej Janicki",
+                "ovr": 69,
+                "position": "GK"
+            },
+            {
+                "name": "Radu Boboc",
+                "ovr": 66,
+                "position": "RB"
+            },
+            {
+                "name": "Lucas Masoero",
+                "ovr": 68,
+                "position": "CB"
+            },
+            {
+                "name": "Gabriel Isik",
+                "ovr": 64,
+                "position": "CB"
+            },
+            {
+                "name": "Bartosz Kopacz",
+                "ovr": 64,
+                "position": "LB"
+            },
+            {
+                "name": "Maciej Ambrosiewicz",
+                "ovr": 64,
+                "position": "CDM"
+            },
+            {
+                "name": "Sergio Guerrero",
+                "ovr": 66,
+                "position": "CM"
+            },
+            {
+                "name": "Rafał Kurzawa",
+                "ovr": 67,
+                "position": "CAM"
+            },
+            {
+                "name": "Morgan Faßbender",
+                "ovr": 64,
+                "position": "MD"
+            },
+            {
+                "name": "Jesús Jiménez",
+                "ovr": 67,
+                "position": "MD"
+            },
+            {
+                "name": "Ivan Durdov",
+                "ovr": 64,
+                "position": "ST"
+            },
+            {
+                "name": "Miłosz Mleczko",
+                "ovr": 64,
+                "position": "MD"
+            },
+            {
+                "name": "Arkadiusz Kasperkiewicz",
+                "ovr": 63,
+                "position": "MD"
+            },
+            {
+                "name": "Damian Hilbrycht",
+                "ovr": 65,
+                "position": "MD"
+            },
+            {
+                "name": "Krzysztof Kubica",
+                "ovr": 64,
+                "position": "MD"
+            },
+            {
+                "name": "Kamil Zapolnik",
+                "ovr": 63,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1466128274211082240>": {
+        "name": "<@&1466128274211082240>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Unknown Player",
+                "ovr": 60,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 63,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 61,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 61,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 62,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 63,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 61,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 62,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 56,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 59,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 58,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1466065179673362432>": {
+        "name": "<@&1466065179673362432>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Unknown Player",
+                "ovr": 66,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 68,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 67,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 0,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 66,
+                "position": "ST"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 61,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 64,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 63,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 64,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 65,
+                "position": "MD"
+            },
+            {
+                "name": "Unknown Player",
+                "ovr": 64,
+                "position": "MD"
+            }
+        ]
+    },
+    "<@&1465001183952502895>": {
+        "name": "<@&1465001183952502895>",
+        "style": "Balanced",
+        "players": [
+            {
+                "name": "Patryk Letkiewicz",
+                "ovr": 68,
+                "position": "GK"
+            },
+            {
+                "name": "Darijo Grujičić",
+                "ovr": 68,
+                "position": "LB"
+            },
+            {
+                "name": "Rafał Mikulec",
+                "ovr": 67,
+                "position": "CB"
+            },
+            {
+                "name": "Raoul Giger",
+                "ovr": 68,
+                "position": "CB"
+            },
+            {
+                "name": "Julian Lelieveld",
+                "ovr": 67,
+                "position": "RB"
+            },
+            {
+                "name": "Kacper Duda",
+                "ovr": 67,
+                "position": "CM"
+            },
+            {
+                "name": "James Igbekeme",
+                "ovr": 67,
+                "position": "CM"
+            },
+            {
+                "name": "Jordi Sánchez",
+                "ovr": 68,
+                "position": "MD"
+            },
+            {
+                "name": "Ángel Rodado",
+                "ovr": 72,
+                "position": "ST"
+            },
+            {
+                "name": "Marko Božić",
+                "ovr": 67,
+                "position": "MD"
+            }
+        ]
+    }
+}
