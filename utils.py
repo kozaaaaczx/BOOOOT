@@ -5,67 +5,55 @@ from models import Player
 def parse_squad_text(text):
     """
     Parses a block of text to extract player data.
-    Supports formats like:
-    LB – Lorenzo Insigne (76)
-    GK: Jan Kowalski 80
-    ST Robert Lewandowski 90
+    Supports line-by-line and horizontal/inline formats.
+    Example: GK - Stanek 79 Lo - Mauro Junior 79 Lśo - Copete 75
     """
     players = []
     
     # 1. CLEANING: Remove Discord junk
     text = re.sub(r'<[^>]+>|https?://\S+', '', text)
     
-    # Position mapping (Polish and English)
+    # Position mapping (Extended Polish and English)
     pos_map = {
         'BR': 'GK', 'GK': 'GK',
         'LO': 'LB', 'LB': 'LB',
         'PO': 'RB', 'RB': 'RB',
-        'SO': 'CB', 'ŚO': 'CB', 'CB': 'CB',
-        'SP': 'CM', 'ŚP': 'CM', 'CM': 'CM',
+        'SO': 'CB', 'ŚO': 'CB', 'CB': 'CB', 'LSO': 'CB', 'LŚO': 'CB', 'PSO': 'CB', 'PŚO': 'CB',
+        'SP': 'CM', 'ŚP': 'CM', 'CM': 'CM', 'LSP': 'CM', 'LŚP': 'CM', 'PSP': 'CM', 'PŚP': 'CM',
         'LP': 'LM', 'LM': 'LM',
         'PP': 'RM', 'RM': 'RM',
         'N': 'ST', 'NA': 'ST', 'ST': 'ST',
         'DP': 'CDM', 'SPD': 'CDM', 'ŚPD': 'CDM', 'CDM': 'CDM',
-        'SPO': 'CAM', 'ŚPO': 'CAM', 'CAM': 'CAM'
+        'SPO': 'CAM', 'ŚPO': 'CAM', 'CAM': 'CAM',
+        'LS': 'LW', 'LW': 'LW',
+        'PS': 'RW', 'RW': 'RW'
     }
 
-    # Define Position and OVR patterns with strict boundaries
-    pos_pattern = r'(GK|LB|CB|RB|CM|LM|RM|ST|CDM|CAM|BR|LO|PO|SO|ŚO|SP|ŚP|LP|PP|N|NA|DP|SPD|ŚPD|SPO|ŚPO)'
+    # Define Position and OVR patterns
+    # Sorted by length to avoid partial matches (e.g. 'PŚP' before 'PŚ')
+    positions = sorted(pos_map.keys(), key=len, reverse=True)
+    pos_pattern = r'(' + '|'.join(re.escape(p) for p in positions) + r')'
     ovr_pattern = r'(\d{2})'
 
-    # Process line by line for better control
-    lines = text.strip().split('\n')
-    for line in lines:
-        line = line.strip()
-        if not line: continue
+    # GLOBAL STRATEGY: Find all units of [POSITION] [TEXT] [OVR]
+    # Name can contain spaces and Polish chars.
+    # Pattern: Boundary + Position + Boundary + optional separator + Name + OVR
+    unit_regex = re.compile(
+        fr'\b(?P<pos>{pos_pattern})\b\s*[–\-\•:|]?\s*(?P<name>.*?)\s*(?P<ovr>{ovr_pattern})',
+        re.IGNORECASE | re.UNICODE
+    )
 
-        # Find OVR first
-        ovr_match = re.search(ovr_pattern, line)
-        if not ovr_match: continue
-        ovr = int(ovr_match.group(1))
-
-        # Find position at the beginning or surrounded by boundaries
-        # Look for position at start of line or following a separator
-        pos_match = re.search(fr'^{pos_pattern}|(?<=[^a-zA-Z]){pos_pattern}(?=[^a-zA-Z])', line, re.IGNORECASE)
+    matches = list(unit_regex.finditer(text))
+    
+    for m in matches:
+        pos_code = m.group('pos').upper()
+        pos_str = pos_map.get(pos_code, "MD")
+        ovr = int(m.group('ovr'))
         
-        pos_str = "MD"
-        if pos_match:
-            pos_code = pos_match.group(0).upper()
-            pos_str = pos_map.get(pos_code, "MD")
-            
-        # Extract name: remove OVR and Position parts
-        name = line
-        if ovr_match:
-            name = name.replace(ovr_match.group(0), "")
-        if pos_match:
-            # We must be careful not to replace part of a word
-            # Only replace the specific position match we found
-            pos_span = pos_match.span()
-            name = name[:pos_span[0]] + name[pos_span[1]:]
-
-        # Final cleanup of name
+        # Clean name
+        name = m.group('name').strip()
         name = re.sub(r'[()\[\]–\-:;|•]', " ", name)
-        name = " ".join(name.split()).strip() # Remove double spaces
+        name = " ".join(name.split()).strip()
 
         if not name or len(name) < 2:
             name = "Unknown Player"
