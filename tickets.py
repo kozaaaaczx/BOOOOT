@@ -9,10 +9,24 @@ class TicketLauncher(View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Stwórz Ticket", style=discord.ButtonStyle.green, custom_id="create_ticket_btn")
-    async def create_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.select(
+        placeholder="Wybierz kategorię ticketu...",
+        custom_id="ticket_category_select",
+        options=[
+            discord.SelectOption(label="Chcę stworzyć klub", value="klub", description="Prośba o założenie nowej drużyny", emoji="🏆"),
+            discord.SelectOption(label="Kontakt z administracją", value="kontakt", description="Ogólne zapytania do zarządu", emoji="📩"),
+            discord.SelectOption(label="Współpraca", value="wspolpraca", description="Propozycje wspólnych projektów", emoji="🤝"),
+            discord.SelectOption(label="Skarga na administrację", value="skarga_admin", description="Zgłoszenie nieprawidłowości w pracy ekipy", emoji="⚖️"),
+            discord.SelectOption(label="Skarga na gracza", value="skarga_gracz", description="Zgłoszenie toksyczności lub oszustw", emoji="🚩"),
+            discord.SelectOption(label="Mam propozycję", value="propozycja", description="Nowe pomysły na rozwój serwera", emoji="💡"),
+            discord.SelectOption(label="Chcę zgłosić błąd", value="blad", description="Problemy techniczne i bugi", emoji="🐛"),
+            discord.SelectOption(label="Inne", value="inne", description="Sprawy, które nie pasują do powyższych", emoji="❓")
+        ]
+    )
+    async def select_category(self, interaction: discord.Interaction, select: discord.ui.Select):
         user = interaction.user
         guild = interaction.guild
+        category_name = select.values[0]
         
         # Check for existing ticket by topic (contains user ID)
         existing_channel = None
@@ -25,7 +39,11 @@ class TicketLauncher(View):
             await interaction.response.send_message(f"Masz już otwarty ticket: {existing_channel.mention}", ephemeral=True)
             return
 
-        # Sanitize username and add ID for uniqueness
+        # Map values to human readable names for the embed
+        category_labels = {opt.value: opt.label for opt in select.options}
+        selected_label = category_labels.get(category_name, "Inne")
+
+        # Sanitize username
         safe_username = re.sub(r'[^a-zA-Z0-9]', '', user.name.lower())
         ticket_name = f"ticket-{safe_username}"
         
@@ -49,7 +67,7 @@ class TicketLauncher(View):
                 name=ticket_name, 
                 overwrites=overwrites, 
                 category=category,
-                topic=f"Ticket Owner: {user.id}" # Store owner ID for robust tracking
+                topic=f"Ticket Owner: {user.id} | Kategoria: {selected_label}"
             )
         except Exception as e:
             await interaction.response.send_message(f"Błąd przy tworzeniu kanału: {e}", ephemeral=True)
@@ -62,10 +80,11 @@ class TicketLauncher(View):
         
         # Send welcome message in the new ticket
         embed = discord.Embed(
-            title="Witaj w Tickecie!",
-            description="Opisz swój problem, a administracja wkrótce Ci pomoże.",
+            title=f"Witaj w Tickecie! ({selected_label})",
+            description=f"Witaj {user.mention}, opisz swój problem/sprawę dotyczącą **{selected_label}**.\nAdministracja wkrótce Ci pomoże.",
             color=discord.Color.blue()
         )
+        embed.set_footer(text=f"ID Użytkownika: {user.id}")
         await channel.send(f"{user.mention} {mentor_ping}", embed=embed, view=TicketControl())
 
 class TicketControl(View):
