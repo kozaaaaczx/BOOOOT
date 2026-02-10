@@ -81,12 +81,24 @@ async def create_team(interaction: discord.Interaction, role: discord.Role = Non
     await interaction.response.send_message(summary)
 
 @bot.tree.command(name="create_random_team", description="Stwórz losową drużynę do testów")
-async def create_random_team(interaction: discord.Interaction, name: str):
+async def create_random_team(interaction: discord.Interaction, role: discord.Role = None, nazwa: str = None):
+    team_name = None
+    if role:
+        team_name = role.mention
+    elif nazwa:
+        team_name = nazwa
+    else:
+        await interaction.response.send_message("Musisz podać rolę lub nazwę drużyny!", ephemeral=True)
+        return
+
     players = generate_random_squad()
-    new_team = Team(name, players)
-    teams[name] = new_team
+    new_team = Team(team_name, players)
+    teams[team_name] = new_team
     save_teams()
-    await interaction.response.send_message(f"Losowa drużyna **{name}** stworzona (Średni OVR: {new_team.get_avg_ovr():.1f}).")
+    
+    avg_ovr = new_team.get_avg_ovr()
+    stars = get_star_rating(avg_ovr)
+    await interaction.response.send_message(f"Losowa drużyna {team_name} stworzona (OVR: {avg_ovr:.1f} | Klasa: {stars}).")
 
 @bot.tree.command(name="delete_team", description="Usuń istniejącą drużynę")
 async def delete_team(interaction: discord.Interaction, role: discord.Role = None, nazwa: str = None):
