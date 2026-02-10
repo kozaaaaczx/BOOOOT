@@ -203,6 +203,73 @@ async def play_match(interaction: discord.Interaction, home_team: str, away_team
 async def setup_tickets(interaction: discord.Interaction, channel: discord.TextChannel):
     await tickets.setup_tickets(interaction, channel)
 
+@bot.tree.command(name="sklad", description="Sprawdź aktualny skład drużyny")
+async def sklad(interaction: discord.Interaction, role: discord.Role = None, nazwa: str = None):
+    # Determine the team key
+    team_key = None
+    if role:
+        team_key = role.mention
+    elif nazwa:
+        team_key = nazwa
+    else:
+        await interaction.response.send_message("Musisz podać rolę lub nazwę drużyny!", ephemeral=True)
+        return
+
+    if team_key not in teams:
+        # Try finding by plain name if it was a role mention but stored as plain text or vice-versa
+        found = False
+        for k in teams.keys():
+            if team_key.lower() in k.lower() or k.lower() in team_key.lower():
+                team_key = k
+                found = True
+                break
+        if not found:
+            await interaction.response.send_message(f"Nie znaleziono drużyny: `{team_key}`", ephemeral=True)
+            return
+
+    team = teams[team_key]
+    
+    # Resolve display name for the embed
+    def get_team_display(guild, name):
+        role_match = re.search(r'<@&(\d+)>', name)
+        if role_match:
+            r = guild.get_role(int(role_match.group(1)))
+            return r.name if r else name
+        return name
+
+    display_name = get_team_display(interaction.guild, team.name)
+    
+    embed = discord.Embed(
+        title=f"📋 Skład: {display_name}",
+        color=discord.Color.green()
+    )
+    
+    # Group players by line (GK, DEF, MID, ATT)
+    gk = []
+    df = []
+    md = []
+    fw = []
+    
+    for p in team.players:
+        pos = p.position.upper()
+        line_str = f"`{pos}` **{p.name}** ({p.ovr})"
+        if pos == "GK": gk.append(line_str)
+        elif pos in ["LB", "RB", "CB", "LO", "PO", "SO", "ŚO"]: df.append(line_str)
+        elif pos in ["CM", "LM", "RM", "CDM", "CAM", "ŚP", "ŚPD", "ŚPO", "SP", "DP", "SPO", "LP", "PP"]: md.append(line_str)
+        else: fw.append(line_str)
+
+    if gk: embed.add_field(name="🧤 Bramkarze", value="\n".join(gk), inline=False)
+    if df: embed.add_field(name="🛡️ Obrońcy", value="\n".join(df), inline=False)
+    if md: embed.add_field(name="⚙️ Pomocnicy", value="\n".join(md), inline=False)
+    if fw: embed.add_field(name="🎯 Napastnicy", value="\n".join(fw), inline=False)
+    
+    if not team.players:
+        embed.description = "Brak zawodników w kadrze."
+    
+    embed.set_footer(text=f"Styl gry: {team.style} | Liczba graczy: {len(team.players)}")
+    
+    await interaction.response.send_message(embed=embed)
+
 def calculate_motm(home_team, away_team):
     all_players = home_team.players + away_team.players
     if not all_players:
