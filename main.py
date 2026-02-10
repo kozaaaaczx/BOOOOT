@@ -122,16 +122,8 @@ async def list_teams(interaction: discord.Interaction):
         avg_ovr = team.get_avg_ovr()
         stars = get_star_rating(avg_ovr)
         
-        # Resolve team name (if role ping)
-        def get_team_display_simple(guild, name):
-            role_match = re.match(r'<@&(\d+)>', name)
-            if role_match:
-                role = guild.get_role(int(role_match.group(1)))
-                return role.name if role else name
-            return name
-            
-        display_name = get_team_display_simple(interaction.guild, name)
-        msg += f"- **{display_name}** | {stars} (OVR: {avg_ovr:.1f})\n"
+        # Use 'name' directly if it's a mention, so it "pings" (renders as a mention)
+        msg += f"- {name} | {stars} (OVR: {avg_ovr:.1f})\n"
         
     await interaction.response.send_message(msg)
 
@@ -179,26 +171,14 @@ async def play_match(interaction: discord.Interaction, home_team: str, away_team
                  await asyncio.sleep(LIVE_MATCH_UPDATE_INTERVAL)
             
         
-        # Helper to get clean team name (resolves roles)
-        def get_team_display(guild, name):
-            role_match = re.match(r'<@&(\d+)>', name)
-            if role_match:
-                role = guild.get_role(int(role_match.group(1)))
-                return role.name if role else name
-            return name
-
-        home_name_clean = get_team_display(interaction.guild, home.name)
-        away_name_clean = get_team_display(interaction.guild, away.name)
-
         # Match Ended
-        summary = f"🏁 **KONIEC MECZU** 🏁\n# {home_name_clean} {match.home_team.score} - {match.away_team.score} {away_name_clean}\n"
+        summary = f"🏁 **KONIEC MECZU** 🏁\n{home.name} {match.home_team.score} - {match.away_team.score} {away.name}\n"
         
         # Player Ratings Report
         ratings_msg = "⭐ **Oceny Zawodników** ⭐\n\n"
         
         for team in [home, away]:
-            team_display = get_team_display(interaction.guild, team.name)
-            ratings_msg += f"🔹 **{team_display}:**\n"
+            ratings_msg += f"🔹 {team.name}:\n"
             # Sort players by rating descending
             sorted_players = sorted(team.players, key=lambda p: p.rating, reverse=True)
             for p in sorted_players:
@@ -260,18 +240,8 @@ async def sklad(interaction: discord.Interaction, role: discord.Role = None, naz
 
     team = teams[team_key]
     
-    # Resolve display name for the embed
-    def get_team_display(guild, name):
-        role_match = re.search(r'<@&(\d+)>', name)
-        if role_match:
-            r = guild.get_role(int(role_match.group(1)))
-            return r.name if r else name
-        return name
-
-    display_name = get_team_display(interaction.guild, team.name)
-    
     embed = discord.Embed(
-        title=f"📋 Skład: {display_name}",
+        title=f"📋 Skład: {team.name}",
         color=discord.Color.green()
     )
     
