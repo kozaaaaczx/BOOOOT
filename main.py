@@ -117,13 +117,16 @@ async def list_teams(interaction: discord.Interaction):
         await interaction.response.send_message("Brak stworzonych drużyn.")
         return
     
-    msg = "🏆 **Dostępne drużyny:**\n"
-    for name, team in teams.items():
+    # Sort teams by OVR descending
+    sorted_teams = sorted(teams.items(), key=lambda x: x[1].get_avg_ovr(), reverse=True)
+    
+    msg = "🏆 **Ranking drużyn (wg OVR):**\n"
+    for i, (name, team) in enumerate(sorted_teams, 1):
         avg_ovr = team.get_avg_ovr()
         stars = get_star_rating(avg_ovr)
         
         # Use 'name' directly if it's a mention, so it "pings" (renders as a mention)
-        msg += f"- {name} | {stars} (OVR: {avg_ovr:.1f})\n"
+        msg += f"{i}. {name} | {stars} (OVR: {avg_ovr:.1f})\n"
         
     await interaction.response.send_message(msg)
 
