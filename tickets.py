@@ -85,7 +85,9 @@ class TicketControl(View):
             await interaction.response.send_message("Tylko administratorzy mogą usuwać tickety.", ephemeral=True)
             return
 
-        await interaction.response.send_message("🧨 Ticket zostanie usunięty za 5 sekund...")
+        import time
+        delete_time = int(time.time() + 5)
+        await interaction.response.send_message(f"🧨 Ticket zostanie usunięty <t:{delete_time}:R>...")
         await asyncio.sleep(5)
         await interaction.channel.delete()
 
