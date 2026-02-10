@@ -2,6 +2,7 @@ import discord
 import asyncio
 import io
 import re
+import time
 from discord.ui import View, Button
 
 class TicketLauncher(View):
@@ -13,16 +14,21 @@ class TicketLauncher(View):
         user = interaction.user
         guild = interaction.guild
         
-        # Sanitize username and add ID for uniqueness
-        safe_username = re.sub(r'[^a-zA-Z0-9]', '', user.name.lower())
-        ticket_name = f"ticket-{safe_username}-{user.id}"
-        
-        existing_channel = discord.utils.get(guild.text_channels, name=ticket_name)
+        # Check for existing ticket by topic (contains user ID)
+        existing_channel = None
+        for channel in guild.text_channels:
+            if channel.topic and f"Ticket Owner: {user.id}" in channel.topic:
+                existing_channel = channel
+                break
         
         if existing_channel:
             await interaction.response.send_message(f"Masz już otwarty ticket: {existing_channel.mention}", ephemeral=True)
             return
 
+        # Sanitize username and add ID for uniqueness
+        safe_username = re.sub(r'[^a-zA-Z0-9]', '', user.name.lower())
+        ticket_name = f"ticket-{safe_username}"
+        
         # Create permissions
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -35,16 +41,24 @@ class TicketLauncher(View):
         if support_role:
              overwrites[support_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
              
-        # Try to find a category named "Tickets" (optional improvement)
+        # Try to find a category named "Tickets"
         category = discord.utils.get(guild.categories, name="Tickets")
         
         try:
-            channel = await guild.create_text_channel(name=ticket_name, overwrites=overwrites, category=category)
+            channel = await guild.create_text_channel(
+                name=ticket_name, 
+                overwrites=overwrites, 
+                category=category,
+                topic=f"Ticket Owner: {user.id}" # Store owner ID for robust tracking
+            )
         except Exception as e:
             await interaction.response.send_message(f"Błąd przy tworzeniu kanału: {e}", ephemeral=True)
             return
 
         await interaction.response.send_message(f"Stworzono ticket: {channel.mention}", ephemeral=True)
+        
+        # Welcome message content
+        mentor_ping = f"{support_role.mention} " if support_role else ""
         
         # Send welcome message in the new ticket
         embed = discord.Embed(
@@ -52,7 +66,7 @@ class TicketLauncher(View):
             description="Opisz swój problem, a administracja wkrótce Ci pomoże.",
             color=discord.Color.blue()
         )
-        await channel.send(f"{user.mention}", embed=embed, view=TicketControl())
+        await channel.send(f"{user.mention} {mentor_ping}", embed=embed, view=TicketControl())
 
 class TicketControl(View):
     def __init__(self):
@@ -60,34 +74,48 @@ class TicketControl(View):
 
     @discord.ui.button(label="Zamknij (Lock)", style=discord.ButtonStyle.secondary, custom_id="close_ticket_btn")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("Tylko administratorzy mogą zamykać tickety.", ephemeral=True)
+        # Use manage_channels instead of administrator for more granular control
+        if not interaction.user.guild_permissions.manage_channels:
+            await interaction.response.send_message("Tylko moderatorzy (Manage Channels) mogą zamykać tickety.", ephemeral=True)
             return
 
         channel = interaction.channel
         
+        # Extract owner ID from topic
+        owner_id = None
+        if channel.topic and "Ticket Owner: " in channel.topic:
+            try:
+                owner_id = int(channel.topic.split("Ticket Owner: ")[1])
+            except (ValueError, IndexError):
+                pass
+
         # Disable the button to prevent double clicking
         button.disabled = True
         await interaction.response.edit_message(view=self)
         
-        # Lock the ticket
-        for target, overwrite in channel.overwrites.items():
-             # Lock for regular members (excluding bots/support if we wanted, but generally lock for the user)
-            if isinstance(target, discord.Member) and target != interaction.guild.me:
-                await channel.set_permissions(target, send_messages=False, read_messages=True)
-
-        embed = discord.Embed(description="🔒 **Ticket został zamknięty przez moderatora.**", color=discord.Color.red())
-        await channel.send(embed=embed)
+        # Lock only the owner if found, otherwise fallback to locking all non-bot/non-default targets
+        if owner_id:
+            owner = interaction.guild.get_member(owner_id)
+            if owner:
+                await channel.set_permissions(owner, send_messages=False, read_messages=True)
+                await channel.send(f"🔒 Ticket został zamknięty dla {owner.mention}.")
+            else:
+                 await channel.send("⚠️ Nie znaleziono właściciela ticketu na serwerze, ale kanał został zablokowany.")
+        else:
+            # Fallback for older channels without topic or error in topic
+            for target, overwrite in channel.overwrites.items():
+                if isinstance(target, discord.Member) and target != interaction.guild.me:
+                    await channel.set_permissions(target, send_messages=False, read_messages=True)
+            await channel.send("🔒 Ticket został zamknięty (tryb fallback).")
 
     @discord.ui.button(label="Usuń", style=discord.ButtonStyle.danger, custom_id="delete_ticket_btn")
     async def delete_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not interaction.user.guild_permissions.administrator:
-            await interaction.response.send_message("Tylko administratorzy mogą usuwać tickety.", ephemeral=True)
+        if not interaction.user.guild_permissions.manage_channels:
+            await interaction.response.send_message("Tylko moderatorzy mogą usuwać tickety.", ephemeral=True)
             return
 
-        import time
-        delete_time = int(time.time() + 5)
-        await interaction.response.send_message(f"🧨 Ticket zostanie usunięty <t:{delete_time}:R>...")
+        delete_timestamp = int(time.time() + 5)
+        await interaction.response.send_message(f"🧨 Ticket zostanie usunięty <t:{delete_timestamp}:R>...")
         await asyncio.sleep(5)
         await interaction.channel.delete()
 
@@ -103,8 +131,10 @@ class TicketControl(View):
         
         for msg in messages:
             timestamp = msg.created_at.strftime("[%Y-%m-%d %H:%M:%S]")
-            author = f"{msg.author.name}#{msg.author.discriminator}" # Discriminator is often 0 now, but safe to include
-            output.write(f"{timestamp} {author}: {msg.content}\n")
+            author = f"{msg.author.name}#{msg.author.discriminator}"
+            content = msg.content if msg.content.strip() else "[Brak treści]"
+            
+            output.write(f"{timestamp} {author}: {content}\n")
             if msg.attachments:
                 output.write(f"  [Załączniki: {', '.join([a.url for a in msg.attachments])}]\n")
         
