@@ -227,6 +227,7 @@ class SimulationEngine:
     def _apply_outcome(self, match, event_type, context):
         att_team = context.get('team')
         player = context.get('player') # This might be GK in save context
+        is_home = att_team == match.home_team
         
         if event_type == EVENT_GOAL:
             att_team.score += 1
@@ -236,6 +237,14 @@ class SimulationEngine:
             player.goals += 1
             match.chaos_level += 0.05
             
+            # STATS
+            if is_home:
+                match.stats['home_shots'] += 1
+                match.stats['home_on_target'] += 1
+            else:
+                match.stats['away_shots'] += 1
+                match.stats['away_on_target'] += 1
+
             # ASSIST LOGIC
             # Pick a potential assister from the same team (excluding scorer and GK)
             def is_gk(p):
@@ -261,11 +270,18 @@ class SimulationEngine:
             
         elif event_type == EVENT_SAVE:
             # Player is GK here
-            # Reduced from 0.5 to 0.3 to prevent GKs from dominating MOTM in 0-0/1-0 games
             player.update_rating(0.3)
             # Defending team gets momentum boost
-            def_team = match.home_team if att_team == match.away_team else match.away_team
+            def_team = match.away_team if is_home else match.home_team
             def_team.update_momentum(10)
+            
+            # STATS (Attacking team had a shot on target)
+            if is_home:
+                match.stats['home_shots'] += 1
+                match.stats['home_on_target'] += 1
+            else:
+                match.stats['away_shots'] += 1
+                match.stats['away_on_target'] += 1
             
         elif event_type == EVENT_RED_CARD:
             player.update_rating(-2.0)
@@ -276,18 +292,24 @@ class SimulationEngine:
             
         elif event_type == EVENT_SHOT:
             player.update_confidence(1)
-            player.update_rating(0.3) # Increased from 0.2
+            player.update_rating(0.3) 
+            
+            # STATS (Attacking team had a shot off target)
+            if is_home:
+                match.stats['home_shots'] += 1
+            else:
+                match.stats['away_shots'] += 1
             
         elif event_type == EVENT_YELLOW_CARD:
             player.update_rating(-0.2)
             player.update_confidence(-1)
             match.chaos_level += 0.02
-
+ 
         elif event_type == EVENT_FOUL:
             player.update_rating(-0.1)
             match.chaos_level += 0.01
-
+ 
         elif event_type == EVENT_ATTACK:
             # Slight momentum build
             att_team.update_momentum(3)
-            player.update_rating(0.2) # Increased from 0.1
+            player.update_rating(0.2)
