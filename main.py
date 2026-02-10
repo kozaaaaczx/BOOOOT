@@ -7,12 +7,10 @@ from simulation import SimulationEngine
 from utils import parse_squad_text, generate_random_squad
 from config import *
 import json
+import tickets
 
 # Database file
 TEAMS_DB = 'teams.json'
-
-# Pobieranie tokena bezpośrednio ze zmiennych środowiskowych (Railway)
-TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Bot setup
 intents = discord.Intents.default()
@@ -47,6 +45,8 @@ load_teams()
 async def on_ready():
     print(f'Logged in as {bot.user}')
     try:
+        bot.add_view(tickets.TicketLauncher())
+        bot.add_view(tickets.TicketControl())
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
@@ -165,6 +165,11 @@ async def play_match(interaction: discord.Interaction, home_team: str, away_team
         print(f"CRASH IN MATCH LOOP: {e}")
         await channel.send(f"🆘 **BŁĄD KRYTYCZNY:** Mecz został przerwany z powodu błędu silnika: `{e}`")
 
+@bot.tree.command(name="setup_tickets", description="Ustaw panel ticketów na kanale (Admin)")
+@commands.has_permissions(administrator=True)
+async def setup_tickets(interaction: discord.Interaction, channel: discord.TextChannel):
+    await tickets.setup_tickets(interaction, channel)
+
 def calculate_motm(home_team, away_team):
     all_players = home_team.players + away_team.players
     if not all_players:
@@ -175,8 +180,8 @@ def calculate_motm(home_team, away_team):
     return motm
 
 if __name__ == "__main__":
-    if TOKEN:
-        bot.run(TOKEN)
+    token = os.getenv("DISCORD_TOKEN")
+    if token:
+        bot.run(token)
     else:
-        print("\n❌ BŁĄD: Brak tokena DISCORD_TOKEN!")
-        print("Wejdź w Railway -> Variables -> Add Variable i dodaj DISCORD_TOKEN\n")
+        print("\n❌ BŁĄD: Brak zmiennej DISCORD_TOKEN w Railway Variables!")
