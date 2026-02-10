@@ -60,8 +60,11 @@ async def create_team(interaction: discord.Interaction, name: str, squad_text: s
     teams[name] = new_team
     save_teams()
     
+    avg_ovr = new_team.get_avg_ovr()
+    stars = get_star_rating(avg_ovr)
+    
     summary = f"Drużyna **{name}** stworzona pomyślnie z {len(players)} zawodnikami.\n"
-    summary += f"Średni OVR: {new_team.get_avg_ovr():.1f}"
+    summary += f"Średni OVR: {avg_ovr:.1f} | Klasa: {stars}"
     await interaction.response.send_message(summary)
 
 @bot.tree.command(name="create_random_team", description="Stwórz losową drużynę do testów")
@@ -87,11 +90,26 @@ async def edit_team(interaction: discord.Interaction, name: str, squad_text: str
         players = parse_squad_text(squad_text)
         teams[name].players = players
         save_teams()
+        avg_ovr = teams[name].get_avg_ovr()
+        stars = get_star_rating(avg_ovr)
+        
         summary = f"Skład drużyny **{name}** zaktualizowany ({len(players)} zawodników).\n"
-        summary += f"Nowy średni OVR: {teams[name].get_avg_ovr():.1f}"
+        summary += f"Nowy średni OVR: {avg_ovr:.1f} | Klasa: {stars}"
         await interaction.response.send_message(summary)
     else:
         await interaction.response.send_message(f"Nie znaleziono drużyny **{name}**. Użyj /create_team aby ją stworzyć.", ephemeral=True)
+
+def get_star_rating(ovr):
+    if ovr < 60: return "0.5 ★"
+    if ovr <= 62: return "1.0 ★"
+    if ovr <= 64: return "1.5 ★"
+    if ovr <= 66: return "2.0 ★"
+    if ovr <= 68: return "2.5 ★"
+    if ovr <= 70: return "3.0 ★"
+    if ovr <= 74: return "3.5 ★"
+    if ovr <= 78: return "4.0 ★"
+    if ovr <= 82: return "4.5 ★"
+    return "5.0 ★"
 
 @bot.tree.command(name="list_teams", description="Pokaż listę wszystkich drużyn")
 async def list_teams(interaction: discord.Interaction):
@@ -99,9 +117,22 @@ async def list_teams(interaction: discord.Interaction):
         await interaction.response.send_message("Brak stworzonych drużyn.")
         return
     
-    msg = "**Dostępne drużyny:**\n"
+    msg = "🏆 **Dostępne drużyny:**\n"
     for name, team in teams.items():
-        msg += f"- {name} (OVR: {team.get_avg_ovr():.1f}, {len(team.players)} zawodników)\n"
+        avg_ovr = team.get_avg_ovr()
+        stars = get_star_rating(avg_ovr)
+        
+        # Resolve team name (if role ping)
+        def get_team_display_simple(guild, name):
+            role_match = re.match(r'<@&(\d+)>', name)
+            if role_match:
+                role = guild.get_role(int(role_match.group(1)))
+                return role.name if role else name
+            return name
+            
+        display_name = get_team_display_simple(interaction.guild, name)
+        msg += f"- **{display_name}** | {stars} (OVR: {avg_ovr:.1f})\n"
+        
     await interaction.response.send_message(msg)
 
 @bot.tree.command(name="play_match", description="Rozpocznij mecz między dwiema drużynami")
@@ -266,7 +297,9 @@ async def sklad(interaction: discord.Interaction, role: discord.Role = None, naz
     if not team.players:
         embed.description = "Brak zawodników w kadrze."
     
-    embed.set_footer(text=f"Styl gry: {team.style} | Liczba graczy: {len(team.players)}")
+    avg_ovr = team.get_avg_ovr()
+    stars = get_star_rating(avg_ovr)
+    embed.set_footer(text=f"Klasa: {stars} | Styl: {team.style} | Graczy: {len(team.players)}")
     
     await interaction.response.send_message(embed=embed)
 
