@@ -53,17 +53,30 @@ async def on_ready():
     except Exception as e:
         print(e)
 
-@bot.tree.command(name="create_team", description="Create a new team with a squad list")
-async def create_team(interaction: discord.Interaction, name: str, squad_text: str):
+@bot.tree.command(name="create_team", description="Stwórz nową drużynę ze składem")
+async def create_team(interaction: discord.Interaction, role: discord.Role = None, nazwa: str = None, squad_text: str = ""):
+    team_name = None
+    if role:
+        team_name = role.mention
+    elif nazwa:
+        team_name = nazwa
+    else:
+        await interaction.response.send_message("Musisz podać rolę lub nazwę drużyny!", ephemeral=True)
+        return
+
     players = parse_squad_text(squad_text)
-    new_team = Team(name, players)
-    teams[name] = new_team
+    if not players:
+        await interaction.response.send_message("Nie udało się wykryć żadnych zawodników w tekście składu!", ephemeral=True)
+        return
+
+    new_team = Team(team_name, players)
+    teams[team_name] = new_team
     save_teams()
     
     avg_ovr = new_team.get_avg_ovr()
     stars = get_star_rating(avg_ovr)
     
-    summary = f"Drużyna **{name}** stworzona pomyślnie z {len(players)} zawodnikami.\n"
+    summary = f"Drużyna {team_name} stworzona pomyślnie z {len(players)} zawodnikami.\n"
     summary += f"Średni OVR: {avg_ovr:.1f} | Klasa: {stars}"
     await interaction.response.send_message(summary)
 
@@ -76,28 +89,72 @@ async def create_random_team(interaction: discord.Interaction, name: str):
     await interaction.response.send_message(f"Losowa drużyna **{name}** stworzona (Średni OVR: {new_team.get_avg_ovr():.1f}).")
 
 @bot.tree.command(name="delete_team", description="Usuń istniejącą drużynę")
-async def delete_team(interaction: discord.Interaction, name: str):
-    if name in teams:
-        del teams[name]
-        save_teams()
-        await interaction.response.send_message(f"Drużyna **{name}** została usunięta.")
+async def delete_team(interaction: discord.Interaction, role: discord.Role = None, nazwa: str = None):
+    team_key = None
+    if role:
+        team_key = role.mention
+    elif nazwa:
+        team_key = nazwa
     else:
-        await interaction.response.send_message(f"Nie znaleziono drużyny o nazwie **{name}**.", ephemeral=True)
+        await interaction.response.send_message("Musisz podać rolę lub nazwę drużyny!", ephemeral=True)
+        return
+
+    if team_key in teams:
+        del teams[team_key]
+        save_teams()
+        await interaction.response.send_message(f"Drużyna {team_key} została usunięta.")
+    else:
+        # Fuzzy search for deletion too
+        found_key = None
+        for k in teams.keys():
+            if team_key.lower() in k.lower() or k.lower() in team_key.lower():
+                found_key = k
+                break
+        
+        if found_key:
+            del teams[found_key]
+            save_teams()
+            await interaction.response.send_message(f"Drużyna {found_key} została usunięta (dopasowanie przybliżone).")
+        else:
+            await interaction.response.send_message(f"Nie znaleziono drużyny: {team_key}", ephemeral=True)
 
 @bot.tree.command(name="edit_team", description="Edytuj skład istniejącej drużyny")
-async def edit_team(interaction: discord.Interaction, name: str, squad_text: str):
-    if name in teams:
-        players = parse_squad_text(squad_text)
-        teams[name].players = players
-        save_teams()
-        avg_ovr = teams[name].get_avg_ovr()
-        stars = get_star_rating(avg_ovr)
-        
-        summary = f"Skład drużyny **{name}** zaktualizowany ({len(players)} zawodników).\n"
-        summary += f"Nowy średni OVR: {avg_ovr:.1f} | Klasa: {stars}"
-        await interaction.response.send_message(summary)
+async def edit_team(interaction: discord.Interaction, role: discord.Role = None, nazwa: str = None, squad_text: str = ""):
+    team_key = None
+    if role:
+        team_key = role.mention
+    elif nazwa:
+        team_key = nazwa
     else:
-        await interaction.response.send_message(f"Nie znaleziono drużyny **{name}**. Użyj /create_team aby ją stworzyć.", ephemeral=True)
+        await interaction.response.send_message("Musisz podać rolę lub nazwę drużyny!", ephemeral=True)
+        return
+
+    if team_key not in teams:
+        # Fuzzy search
+        found = False
+        for k in teams.keys():
+            if team_key.lower() in k.lower() or k.lower() in team_key.lower():
+                team_key = k
+                found = True
+                break
+        if not found:
+            await interaction.response.send_message(f"Nie znaleziono drużyny: {team_key}", ephemeral=True)
+            return
+
+    players = parse_squad_text(squad_text)
+    if not players:
+        await interaction.response.send_message("Nie udało się wykryć żadnych zawodników! Skład nie został zmieniony.", ephemeral=True)
+        return
+
+    teams[team_key].players = players
+    save_teams()
+    
+    avg_ovr = teams[team_key].get_avg_ovr()
+    stars = get_star_rating(avg_ovr)
+    
+    summary = f"Skład drużyny {team_key} zaktualizowany ({len(players)} zawodników).\n"
+    summary += f"Nowy średni OVR: {avg_ovr:.1f} | Klasa: {stars}"
+    await interaction.response.send_message(summary)
 
 def get_star_rating(ovr):
     if ovr < 60: return "0.5 ★"
@@ -131,26 +188,40 @@ async def list_teams(interaction: discord.Interaction):
     await interaction.response.send_message(msg)
 
 @bot.tree.command(name="play_match", description="Rozpocznij mecz między dwiema drużynami")
-async def play_match(interaction: discord.Interaction, home_team: str, away_team: str, mode: str = "live"):
-    if home_team not in teams or away_team not in teams:
-        await interaction.response.send_message("Jedna lub obie drużyny nie istnieją! Użyj najpierw /create_team.", ephemeral=True)
+async def play_match(interaction: discord.Interaction, home_role: discord.Role = None, home_name: str = None, away_role: discord.Role = None, away_name: str = None, mode: str = "live"):
+    # Resolve teams
+    def resolve_team(role, name):
+        key = role.mention if role else name
+        if not key: return None, None
+        
+        if key in teams:
+            return key, teams[key]
+        
+        # Fuzzy search
+        for k in teams.keys():
+            if key.lower() in k.lower() or k.lower() in key.lower():
+                return k, teams[k]
+        return None, None
+
+    home_key, home = resolve_team(home_role, home_name)
+    away_key, away = resolve_team(away_role, away_name)
+
+    if not home or not away:
+        await interaction.response.send_message("Nie znaleziono jednej lub obu drużyn!", ephemeral=True)
         return
 
-    home = teams[home_team]
-    away = teams[away_team]
-    
     # Create match instance
     match = Match(home, away, mode=mode.lower())
     
     # Check for empty teams
     if not home.players or not away.players:
-        await interaction.response.send_message("Jedna z drużyn nie ma zawodników! Nie można rozpocząć meczu.", ephemeral=True)
+        await interaction.response.send_message("Jedna z drużyn nie ma zawodników!", ephemeral=True)
         return
 
-    # Defer response to prevent "Application not responding" if something takes long
+    # Defer response
     await interaction.response.defer()
     
-    await interaction.followup.send(f"⚽ **MECZ ROZPOCZĘTY!** ⚽\n{home.name} vs {away.name}\nTryb: {mode}")
+    await interaction.followup.send(f"⚽ **MECZ ROZPOCZĘTY!** ⚽\n{home_key} vs {away_key}\nTryb: {mode}")
     
     # Simulation Loop
     channel = interaction.channel
