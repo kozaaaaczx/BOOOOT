@@ -230,11 +230,34 @@ class SimulationEngine:
         
         if event_type == EVENT_GOAL:
             att_team.score += 1
-            att_team.update_momentum(10) # Reduced from 20
+            att_team.update_momentum(10)
             player.update_rating(1.0)
             player.update_confidence(2)
             player.goals += 1
-            match.chaos_level += 0.05 # Reduced from 0.1
+            match.chaos_level += 0.05
+            
+            # ASSIST LOGIC
+            # Pick a potential assister from the same team (excluding scorer and GK)
+            def is_gk(p):
+                return p.position.strip().upper() in ["GK", "BR", "BRAMKARZ", "GOALKEEPER"]
+                
+            teammates = [p for p in att_team.players if p != player and not is_gk(p) and not p.is_sent_off]
+            if teammates and random.random() < 0.8: # 80% chance for an assist
+                # Weight by position (CM/CAM have higher chance)
+                a_weights = []
+                for t in teammates:
+                    pos = t.position.strip().upper()
+                    if pos in ["CAM", "LM", "RM", "LW", "RW"]: w = 10
+                    elif pos in ["CM", "ŚP"]: w = 8
+                    elif pos in ["CDM", "ŚPD"]: w = 5
+                    elif pos in ["ST", "CF"]: w = 4
+                    else: w = 2
+                    a_weights.append(w)
+                
+                assister = random.choices(teammates, weights=a_weights, k=1)[0]
+                assister.assists += 1
+                assister.update_rating(0.5)
+                context['assister'] = assister
             
         elif event_type == EVENT_SAVE:
             # Player is GK here

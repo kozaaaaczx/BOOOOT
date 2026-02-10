@@ -148,19 +148,39 @@ async def play_match(interaction: discord.Interaction, home_team: str, away_team
             
         
         # Match Ended
-        summary = f"**KONIEC MECZU**\n{home.name} {match.home_team.score} - {match.away_team.score} {away.name}\n"
+        summary = f"🏁 **KONIEC MECZU** 🏁\n# {home.name} {match.home_team.score} - {match.away_team.score} {away.name}\n"
         
-        # Stats Summary
-        stats_msg = "📊 **Statystyki Meczu**\n"
-        stats_msg += f"{home.name}: {home.score} Gole\n"
-        stats_msg += f"{away.name}: {away.score} Gole\n"
+        # Player Ratings Report
+        ratings_msg = "⭐ **Oceny Zawodników** ⭐\n\n"
         
-        await channel.send(summary + "\n" + stats_msg)
+        for team in [home, away]:
+            ratings_msg += f"**{team.name}:**\n"
+            # Sort players by rating descending
+            sorted_players = sorted(team.players, key=lambda p: p.rating, reverse=True)
+            for p in sorted_players:
+                stats = []
+                if p.goals > 0: stats.append(f"⚽x{p.goals}")
+                if p.assists > 0: stats.append(f"🅰️x{p.assists}")
+                if p.cards == 1: stats.append("🟨")
+                if p.is_sent_off: stats.append("🟥")
+                
+                stats_str = f" ({', '.join(stats)})" if stats else ""
+                ratings_msg += f"`{p.rating:.1f}` | **{p.name}** ({p.position}){stats_str}\n"
+            ratings_msg += "\n"
+
+        # Match Stats Summary
+        stats_msg = "📊 **Statystyki Zespołowe**\n"
+        stats_msg += f"Strzały: {match.stats['home_shots']} - {match.stats['away_shots']}\n"
+        stats_msg += f"Celne: {match.stats['home_on_target']} - {match.stats['away_on_target']}\n"
+        
+        # Send full summary
+        # Divide potentially long message if needed, but for Discord embed limits it should be fine for 11 vs 11
+        await channel.send(summary + "\n" + stats_msg + "\n" + ratings_msg)
         
         # Man of the Match
         motm_player = calculate_motm(home, away)
         if motm_player:
-            await channel.send(f"🌟 **ZAWODNIK MECZU (MOTM)** 🌟\n**{motm_player.name}** ({motm_player.position})\nOcena: **{motm_player.rating:.1f}**" + (f"\nBramki: {motm_player.goals}" if motm_player.goals > 0 else ""))
+            await channel.send(f"🌟 **ZAWODNIK MECZU (MOTM)** 🌟\n**{motm_player.name}** ({motm_player.position})\nOcena: **{motm_player.rating:.1f}**")
     except Exception as e:
         print(f"CRASH IN MATCH LOOP: {e}")
         await channel.send(f"🆘 **BŁĄD KRYTYCZNY:** Mecz został przerwany z powodu błędu silnika: `{e}`")
