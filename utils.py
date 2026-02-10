@@ -4,70 +4,73 @@ from models import Player
 
 def parse_squad_text(text):
     """
-    Parses a block of text to extract player data by identifying 'Player Units'.
-    A unit is usually: [Position] [Name] [OVR] or [OVR] [Name] [Position].
+    Parses a block of text to extract player data.
+    Supports formats like:
+    LB – Lorenzo Insigne (76)
+    GK: Jan Kowalski 80
+    ST Robert Lewandowski 90
     """
     players = []
     
     # 1. CLEANING: Remove Discord junk
     text = re.sub(r'<[^>]+>|https?://\S+', '', text)
     
-    # Polish to English position mapping
+    # Position mapping (Polish and English)
     pos_map = {
-        'BR': 'GK', 'LO': 'LB', 'PO': 'RB', 'SO': 'CB', 'ŚO': 'CB',
-        'SP': 'CM', 'ŚP': 'CM', 'LP': 'LM', 'PP': 'RM', 'N': 'ST',
-        'NA': 'ST', 'DP': 'CDM', 'SPD': 'CDM', 'ŚPD': 'CDM',
-        'SPO': 'CAM', 'ŚPO': 'CAM'
+        'BR': 'GK', 'GK': 'GK',
+        'LO': 'LB', 'LB': 'LB',
+        'PO': 'RB', 'RB': 'RB',
+        'SO': 'CB', 'ŚO': 'CB', 'CB': 'CB',
+        'SP': 'CM', 'ŚP': 'CM', 'CM': 'CM',
+        'LP': 'LM', 'LM': 'LM',
+        'PP': 'RM', 'RM': 'RM',
+        'N': 'ST', 'NA': 'ST', 'ST': 'ST',
+        'DP': 'CDM', 'SPD': 'CDM', 'ŚPD': 'CDM', 'CDM': 'CDM',
+        'SPO': 'CAM', 'ŚPO': 'CAM', 'CAM': 'CAM'
     }
 
-    # Define Position and OVR patterns
+    # Define Position and OVR patterns with strict boundaries
     pos_pattern = r'(GK|LB|CB|RB|CM|LM|RM|ST|CDM|CAM|BR|LO|PO|SO|ŚO|SP|ŚP|LP|PP|N|NA|DP|SPD|ŚPD|SPO|ŚPO)'
     ovr_pattern = r'(\d{2})'
 
-    # RE-SEARCH STRATEGY:
-    # Instead of splitting lines, we find all OVRs. 
-    # The text between OVRs (and some context before/after) constitutes a player.
-    # However, a cleaner way is to find "Position Name OVR" or "OVR Name Position"
-    
-    # Match: [Position]? [Separator]? [Name] [OVR]
-    # Name can contain spaces and Polish chars.
-    unit_pattern = re.compile(
-        fr'(?P<pos>{pos_pattern})?\s*[–\-•:|]?\s*(?P<name>[^0-9\n\r–\-•:|]+?)\s*\(?(?P<ovr>{ovr_pattern})\)?',
-        re.IGNORECASE | re.UNICODE
-    )
+    # Process line by line for better control
+    lines = text.strip().split('\n')
+    for line in lines:
+        line = line.strip()
+        if not line: continue
 
-    matches = list(unit_pattern.finditer(text))
-    
-    if not matches:
-        # Fallback to simple line-based for other formats
-        lines = text.strip().split('\n')
-        for line in lines:
-            ovr_m = re.search(r'(\d{2})', line)
-            if ovr_m:
-                ovr = int(ovr_m.group(1))
-                pos_m = re.search(pos_pattern, line, re.IGNORECASE)
-                pos_str = pos_m.group(1).upper() if pos_m else "MD"
-                name = line.replace(ovr_m.group(0), "").strip()
-                if pos_m:
-                    name = re.sub(fr'\b{re.escape(pos_m.group(1))}\b', '', name, flags=re.IGNORECASE).strip()
-                name = re.sub(r'[()\[\]–\-:;|•]', "", name).strip()
-                players.append(Player(name if name else "Unknown", ovr, pos_map.get(pos_str, pos_str)))
-        return players
+        # Find OVR first
+        ovr_match = re.search(ovr_pattern, line)
+        if not ovr_match: continue
+        ovr = int(ovr_match.group(1))
 
-    for m in matches:
-        raw_pos = m.group('pos')
-        pos_str = raw_pos.upper() if raw_pos else "MD"
-        pos = pos_map.get(pos_str, pos_str)
+        # Find position at the beginning or surrounded by boundaries
+        # Look for position at start of line or following a separator
+        pos_match = re.search(fr'^{pos_pattern}|(?<=[^a-zA-Z]){pos_pattern}(?=[^a-zA-Z])', line, re.IGNORECASE)
         
-        ovr = int(m.group('ovr'))
-        
-        name = m.group('name').strip()
-        name = re.sub(r'[()\[\]–\-:;|•]', "", name).strip()
-        
+        pos_str = "MD"
+        if pos_match:
+            pos_code = pos_match.group(0).upper()
+            pos_str = pos_map.get(pos_code, "MD")
+            
+        # Extract name: remove OVR and Position parts
+        name = line
+        if ovr_match:
+            name = name.replace(ovr_match.group(0), "")
+        if pos_match:
+            # We must be careful not to replace part of a word
+            # Only replace the specific position match we found
+            pos_span = pos_match.span()
+            name = name[:pos_span[0]] + name[pos_span[1]:]
+
+        # Final cleanup of name
+        name = re.sub(r'[()\[\]–\-:;|•]', " ", name)
+        name = " ".join(name.split()).strip() # Remove double spaces
+
         if not name or len(name) < 2:
             name = "Unknown Player"
             
-        players.append(Player(name, ovr, pos))
+        players.append(Player(name, ovr, pos_str))
         
     return players
 
