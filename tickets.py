@@ -43,9 +43,10 @@ class TicketLauncher(View):
         category_labels = {opt.value: opt.label for opt in select.options}
         selected_label = category_labels.get(category_name, "Inne")
 
-        # Sanitize username
+        # Sanitize username and category name for channel naming
         safe_username = re.sub(r'[^a-zA-Z0-9]', '', user.name.lower())
-        ticket_name = f"ticket-{safe_username}"
+        safe_category = re.sub(r'[^a-zA-Z0-9]', '', category_name.lower())
+        ticket_name = f"{safe_username}-{safe_category}"
         
         # Create permissions
         overwrites = {
@@ -59,8 +60,9 @@ class TicketLauncher(View):
         if support_role:
              overwrites[support_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
              
-        # Try to find a category named "Tickets"
-        category = discord.utils.get(guild.categories, name="Tickets")
+        # Set category by ID
+        target_category_id = 1456730454819471543
+        category = guild.get_channel(target_category_id)
         
         try:
             channel = await guild.create_text_channel(
