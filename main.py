@@ -8,6 +8,7 @@ from utils import parse_squad_text, generate_random_squad
 from config import *
 import json
 import tickets
+import re
 
 # Database file
 TEAMS_DB = 'teams.json'
@@ -147,14 +148,26 @@ async def play_match(interaction: discord.Interaction, home_team: str, away_team
                  await asyncio.sleep(LIVE_MATCH_UPDATE_INTERVAL)
             
         
+        # Helper to get clean team name (resolves roles)
+        def get_team_display(guild, name):
+            role_match = re.match(r'<@&(\d+)>', name)
+            if role_match:
+                role = guild.get_role(int(role_match.group(1)))
+                return role.name if role else name
+            return name
+
+        home_name_clean = get_team_display(interaction.guild, home.name)
+        away_name_clean = get_team_display(interaction.guild, away.name)
+
         # Match Ended
-        summary = f"🏁 **KONIEC MECZU** 🏁\n# {home.name} {match.home_team.score} - {match.away_team.score} {away.name}\n"
+        summary = f"🏁 **KONIEC MECZU** 🏁\n# {home_name_clean} {match.home_team.score} - {match.away_team.score} {away_name_clean}\n"
         
         # Player Ratings Report
         ratings_msg = "⭐ **Oceny Zawodników** ⭐\n\n"
         
         for team in [home, away]:
-            ratings_msg += f"**{team.name}:**\n"
+            team_display = get_team_display(interaction.guild, team.name)
+            ratings_msg += f"🔹 **{team_display}:**\n"
             # Sort players by rating descending
             sorted_players = sorted(team.players, key=lambda p: p.rating, reverse=True)
             for p in sorted_players:
