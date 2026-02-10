@@ -55,8 +55,9 @@ class TicketLauncher(View):
             guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
 
-        # support role handling
-        support_role = discord.utils.get(guild.roles, name="Support")
+        # Support role handling (specific ID)
+        support_role_id = 1456730453439680748
+        support_role = guild.get_role(support_role_id)
         if support_role:
              overwrites[support_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
              
@@ -77,8 +78,8 @@ class TicketLauncher(View):
 
         await interaction.response.send_message(f"Stworzono ticket: {channel.mention}", ephemeral=True)
         
-        # Welcome message content
-        mentor_ping = f"{support_role.mention} " if support_role else ""
+        # Welcome message content with specific role ping
+        mentor_ping = f"<@&{support_role_id}>"
         
         # Send welcome message in the new ticket
         embed = discord.Embed(
